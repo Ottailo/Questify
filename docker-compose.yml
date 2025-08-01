@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: questify
+      POSTGRES_USER: questify
+      POSTGRES_PASSWORD: questify
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - questify-network
+
+  # Redis Cache
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - questify-network
+
+  # ChromaDB Vector Database
+  chromadb:
+    image: chromadb/chroma:latest
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+    ports:
+      - "8001:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    networks:
+      - questify-network
+
+  # Backend API
+  backend:
+    build: ./backend
+    environment:
+      - DATABASE_URL=postgresql://questify:questify@db:5432/questify
+      - REDIS_URL=redis://redis:6379
+      - CHROMADB_URL=http://chromadb:8000
+      - SECRET_KEY=your-secret-key-change-in-production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+    depends_on:
+      - db
+      - redis
+      - chromadb
+    ports:
+      - "8000:8000"
+    networks:
+      - questify-network
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - questify-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  chromadb_data:
+
+networks:
+  questify-network:
+    driver: bridge 
