@@ -1,0 +1,749 @@
+/* ==========================================================================
+   QUESTIFY DESIGN SYSTEM: "The Guild Chronicler"
+   Tactical Fantasy RPG HUD meets Illuminated Quest Ledger
+   Surface Mode: OPERATE (Read Sanctuary for /chat) | Dials: V6 / M3 / D7
+   ========================================================================== */
+
+/* ==========================================================================
+   1. DESIGN TOKENS (OKLCH Evergreen Forest-Ink & Hot Ember Orange)
+   ========================================================================== */
+
+:root {
+  /* Canvas & Surface Hierarchy (OKLCH Tinted Evergreen Neutrals) */
+  --bg-canvas: #09130E;        /* Deep Forest Ink Ground */
+  --bg-surface: #0F1F17;       /* Dark Evergreen Ledger Surface */
+  --bg-elevated: #15291F;      /* Raised Quest Card */
+  --bg-subtle: #1B3327;        /* Inset Header & Slot Backing */
+  --bg-overlay: rgba(9, 19, 14, 0.92); /* Scrim */
+  --bg-glass: rgba(15, 31, 23, 0.85);  /* Frosted Header */
+
+  /* Hairlines & Forged Framing */
+  --border-subtle: rgba(200, 157, 60, 0.15); /* 1px structural separator */
+  --border-strong: rgba(200, 157, 60, 0.32); /* Card boundary */
+  --border-brass: rgba(200, 157, 60, 0.55);  /* Forged antique brass accent line */
+  --border-brass-solid: #C89D3C;             /* Solid brass milestone seal */
+  --border-focus: #D9531E;                   /* Ember Orange Focus */
+
+  /* Typography Hierarchy */
+  --text-primary: #F5F2EA;      /* Illuminated Warm Vellum */
+  --text-secondary: #A8BDB1;    /* Sage Mist */
+  --text-muted: #6E8578;        /* Shadowed Moss */
+  --text-inverse: #09130E;      /* Deep Forest Ink on light chips */
+
+  /* Single Locked Primary Accent (<80% Saturation) */
+  --accent-primary: #D9531E;     /* Hot Ember Orange */
+  --accent-hover: #BF4416;       /* Deepened Hearth */
+  --accent-muted: rgba(217, 83, 30, 0.16); /* Tinted ember badge background */
+  --accent-glow: rgba(217, 83, 30, 0.28);
+  --accent-foreground: #FFFFFF;  /* Button text */
+
+  /* Secondary Forged Guild Brass Accents */
+  --brass-primary: #C89D3C;      /* Forged Guild Brass */
+  --brass-hover: #B58B2E;        /* Aged Brass */
+  --brass-muted: rgba(200, 157, 60, 0.16); /* Brass badge backing */
+  --brass-glow: rgba(200, 157, 60, 0.25);
+
+  /* Semantic State Tokens */
+  --status-success: #10B981;     /* Verdant Victory Emerald */
+  --status-success-muted: rgba(16, 185, 129, 0.16);
+  --status-warning: #F59E0B;     /* Solar Amber */
+  --status-warning-muted: rgba(245, 158, 11, 0.16);
+  --status-danger: #EF4444;      /* Crimson Hazard */
+  --status-danger-muted: rgba(239, 68, 68, 0.16);
+  --status-info: #38BDF8;        /* Scholar's Cyan */
+  --status-info-muted: rgba(56, 189, 248, 0.16);
+
+  /* Tactical Rarity Tiers */
+  --rarity-common: #8F9D96;      /* Weathered Iron */
+  --rarity-heroic: #C89D3C;      /* Forged Brass */
+  --rarity-epic: #8B5CF6;        /* Sage Amethyst */
+  --rarity-legendary: #D9531E;   /* Ember Flame */
+
+  /* Typography Roles */
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Layout, Radii & Depth */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* Optical Grounding Shadows (Zero neon glow) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.65);
+  --shadow-brass: 0 0 16px rgba(200, 157, 60, 0.2);
+  --shadow-ember: 0 0 18px rgba(217, 83, 30, 0.25);
+
+  /* Motion & Easing Curves */
+  --spring-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 240ms;
+
+  /* Backward Compatibility Aliases */
+  --questify-gray-50: var(--bg-canvas);
+  --questify-gray-100: var(--bg-surface);
+  --questify-gray-200: var(--border-subtle);
+  --questify-gray-300: var(--border-strong);
+  --questify-gray-400: var(--text-muted);
+  --questify-gray-500: var(--text-muted);
+  --questify-gray-600: var(--text-secondary);
+  --questify-gray-700: var(--text-secondary);
+  --questify-gray-800: var(--text-primary);
+  --questify-gray-900: var(--text-primary);
+  --questify-sage: var(--status-success);
+  --questify-sage-light: var(--status-success-muted);
+  --questify-sage-dark: var(--status-success);
+  --questify-gold: var(--brass-primary);
+  --questify-gold-light: var(--brass-muted);
+  --questify-gold-dark: var(--brass-primary);
+  --questify-purple: var(--accent-primary);
+  --questify-purple-light: var(--accent-muted);
+  --questify-error: var(--status-danger);
+  --gold-primary: var(--brass-primary);
+  --gold-hover: var(--brass-hover);
+  --gold-muted: var(--brass-muted);
+  --gold-glow: var(--brass-glow);
+  --emerald-primary: var(--status-success);
+  --emerald-hover: #059669;
+  --emerald-muted: var(--status-success-muted);
+  --emerald-glow: rgba(16, 185, 129, 0.25);
+  --sage-primary: #8B5CF6;
+  --sage-hover: #7C3AED;
+  --sage-muted: rgba(139, 92, 246, 0.16);
+  --sage-glow: rgba(139, 92, 246, 0.25);
+}
+
+/* Light Theme: "Manuscript Scribe Mode" */
+[data-theme="light"] {
+  --bg-canvas: #F6F3EB;         /* Aged Manuscript Vellum */
+  --bg-surface: #FAF8F2;        /* Scribe Parchment */
+  --bg-elevated: #EDE8DC;       /* Indented Ledger Rail */
+  --bg-subtle: #E3DDD0;
+  --bg-overlay: rgba(246, 243, 235, 0.94);
+  --bg-glass: rgba(250, 248, 242, 0.88);
+
+  --border-subtle: rgba(140, 105, 30, 0.18);
+  --border-strong: rgba(140, 105, 30, 0.32);
+  --border-brass: rgba(140, 105, 30, 0.65);
+  --border-brass-solid: #8C691E;
+  --border-focus: #BF4416;
+
+  --text-primary: #122119;      /* Deep Forest Gall Ink */
+  --text-secondary: #3D5447;    /* Muted Scribe Tone */
+  --text-muted: #647B6F;        /* Marginalia */
+  --text-inverse: #FAF8F2;
+
+  --accent-primary: #BF4416;    /* Sealing Wax Red-Orange */
+  --accent-hover: #9E350E;
+  --accent-muted: rgba(191, 68, 22, 0.12);
+  --accent-glow: rgba(191, 68, 22, 0.2);
+  --accent-foreground: #FFFFFF;
+
+  --brass-primary: #8C691E;     /* Burnished Antique Brass */
+  --brass-hover: #735414;
+  --brass-muted: rgba(140, 105, 30, 0.12);
+  --brass-glow: rgba(140, 105, 30, 0.18);
+
+  --status-success: #059669;
+  --status-success-muted: rgba(5, 150, 105, 0.12);
+  --status-warning: #D97706;
+  --status-warning-muted: rgba(217, 119, 6, 0.12);
+  --status-danger: #DC2626;
+  --status-danger-muted: rgba(220, 38, 38, 0.12);
+  --status-info: #0284C7;
+  --status-info-muted: rgba(2, 132, 199, 0.12);
+
+  --shadow-sm: 0 1px 2px rgba(18, 33, 25, 0.06);
+  --shadow-md: 0 4px 12px rgba(18, 33, 25, 0.08);
+  --shadow-lg: 0 12px 28px rgba(18, 33, 25, 0.12);
+}
+
+/* ==========================================================================
+   2. GLOBAL RESET & BASE STYLES
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: var(--brass-primary);
+  color: var(--text-inverse);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-xs);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brass-primary);
+}
+
+/* Tabular Numerals */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+/* ==========================================================================
+   3. ARCHIVAL CHRONICLER CARDS & SURFACES
+   ========================================================================== */
+
+.card-tactile {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--duration-fast) var(--spring-snappy),
+              border-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease;
+}
+
+.card-tactile:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Card with Engraved Brass Top Line */
+.card-chronicler, .quest-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease,
+              transform var(--duration-fast) var(--spring-snappy);
+}
+
+.card-chronicler::before, .quest-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--border-brass);
+  opacity: 0.85;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.card-chronicler:hover, .quest-card:hover {
+  border-color: var(--border-brass);
+  box-shadow: var(--shadow-md), var(--shadow-brass);
+}
+
+.card-chronicler:hover::before, .quest-card:hover::before {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   4. TACTILE BUTTONS (HOT EMBER & FORGED BRASS)
+   ========================================================================== */
+
+.btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  outline: none;
+  border: 1px solid transparent;
+  transition: transform 120ms var(--spring-bounce),
+              background-color var(--duration-fast) ease,
+              border-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease;
+}
+
+.btn-base:active {
+  transform: scale(0.97);
+}
+
+.btn-base:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Hot Ember Primary Button */
+.btn-primary, .btn-ember {
+  background: var(--accent-primary);
+  color: #FFFFFF;
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-sm), var(--shadow-ember);
+}
+
+.btn-primary:hover, .btn-ember:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: var(--shadow-md), 0 0 20px rgba(217, 83, 30, 0.4);
+}
+
+/* Forged Brass Secondary Button */
+.btn-brass {
+  background: var(--brass-muted);
+  color: var(--brass-primary);
+  border-color: var(--border-brass);
+}
+
+.btn-brass:hover {
+  background: var(--brass-primary);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm), var(--shadow-brass);
+}
+
+/* Secondary Neutral Button */
+.btn-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+/* Triumphant Emerald Button */
+.btn-victory {
+  background: var(--status-success);
+  color: #FFFFFF;
+  border-color: var(--status-success);
+  box-shadow: var(--shadow-sm), 0 0 14px rgba(16, 185, 129, 0.25);
+}
+
+.btn-victory:hover {
+  background: #059669;
+  border-color: #059669;
+  box-shadow: var(--shadow-md), 0 0 22px rgba(16, 185, 129, 0.4);
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+
+.btn-ghost:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   5. INPUTS & ARCHIVAL FORM CONTROLS
+   ========================================================================== */
+
+.input-tactile, .input-field, .select-field {
+  width: 100%;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.625rem 0.875rem;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color var(--duration-fast) ease,
+              background-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease;
+}
+
+.input-tactile:hover, .input-field:hover, .select-field:hover {
+  border-color: var(--border-strong);
+}
+
+.input-tactile:focus, .input-field:focus, .select-field:focus {
+  border-color: var(--brass-primary);
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 1px var(--brass-primary), 0 0 12px var(--brass-glow);
+}
+
+.input-tactile::placeholder, .input-field::placeholder {
+  color: var(--text-muted);
+}
+
+.select-field {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C89D3C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* ==========================================================================
+   6. CUSTOM TACTILE CHECKBOX (KINETIC STRIKE)
+   ========================================================================== */
+
+.checkbox-tactile {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border-strong);
+  background: var(--bg-canvas);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: all 160ms var(--spring-bounce);
+  margin: 0;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.checkbox-tactile:hover {
+  border-color: var(--brass-primary);
+  box-shadow: 0 0 8px var(--brass-glow);
+  transform: scale(1.08);
+}
+
+.checkbox-tactile:checked {
+  background: var(--status-success);
+  border-color: var(--status-success);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+  transform: scale(1.05);
+}
+
+.checkbox-tactile:checked::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.32rem;
+  border-left: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+  transform: rotate(-45deg) translate(1px, -1px);
+  animation: checkmark-pop 200ms var(--spring-bounce) forwards;
+}
+
+@keyframes checkmark-pop {
+  0% { transform: rotate(-45deg) scale(0) translate(1px, -1px); }
+  100% { transform: rotate(-45deg) scale(1) translate(1px, -1px); }
+}
+
+/* ==========================================================================
+   7. THE CHRONICLE RAIL (Tactile Multi-Segment Progress)
+   ========================================================================== */
+
+.chronicle-rail, .progress-rail {
+  height: 6px;
+  background: var(--bg-canvas);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: stretch;
+}
+
+.chronicle-rail-lg, .progress-rail-lg {
+  height: 10px;
+}
+
+.chronicle-rail-micro {
+  height: 4px;
+  background: var(--bg-canvas);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: stretch;
+}
+
+/* Multi-Segment Chronicle Rail Subtasks */
+.chronicle-rail-segment {
+  height: 100%;
+  background: var(--bg-subtle);
+  border-right: 1px solid var(--bg-canvas);
+  position: relative;
+  transition: background-color var(--duration-normal) ease, width 300ms var(--spring-snappy);
+}
+
+.chronicle-rail-segment:last-child {
+  border-right: none;
+}
+
+.chronicle-rail-segment.completed {
+  background: linear-gradient(90deg, var(--accent-primary) 0%, var(--brass-primary) 100%);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.chronicle-rail-segment.completed::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: chronicle-shimmer 2.8s infinite;
+}
+
+.chronicle-fill, .progress-fill {
+  height: 100%;
+  border-radius: var(--radius-xs);
+  background: linear-gradient(90deg, var(--accent-primary) 0%, var(--brass-primary) 100%);
+  transition: width 400ms var(--spring-snappy);
+  position: relative;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.chronicle-fill-victory {
+  background: var(--status-success);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+/* Progress rail shimmer */
+.chronicle-fill::after, .progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: chronicle-shimmer 2.4s infinite;
+}
+
+@keyframes chronicle-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ==========================================================================
+   8. BRACKETED CHIPS & GUILD STAMPS (Zero Status Dots)
+   ========================================================================== */
+
+.chronicle-stamp {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brass-primary);
+  background: var(--brass-muted);
+  border: 1px solid var(--border-brass);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Difficulty Tier Stamps */
+.stamp-easy {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--status-success);
+  background: var(--status-success-muted);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-xs);
+  display: inline-flex;
+  align-items: center;
+}
+
+.stamp-normal, .stamp-medium {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brass-primary);
+  background: var(--brass-muted);
+  border: 1px solid var(--border-brass);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-xs);
+  display: inline-flex;
+  align-items: center;
+}
+
+.stamp-hard {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+  background: var(--accent-muted);
+  border: 1px solid rgba(217, 83, 30, 0.45);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-xs);
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge-brass {
+  background: var(--brass-muted);
+  border: 1px solid var(--border-brass);
+  color: var(--brass-primary);
+}
+
+.badge-ember {
+  background: var(--accent-muted);
+  border: 1px solid rgba(217, 83, 30, 0.3);
+  color: #F8714B;
+}
+
+.badge-emerald {
+  background: var(--status-success-muted);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34D399;
+}
+
+.badge-danger {
+  background: var(--status-danger-muted);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #F87171;
+}
+
+/* Backward compatibility classes mapped to semantic system */
+.badge-indigo {
+  background: var(--brass-muted);
+  border: 1px solid var(--border-brass);
+  color: var(--brass-primary);
+}
+
+.badge-gold {
+  background: var(--brass-muted);
+  border: 1px solid var(--border-brass);
+  color: var(--brass-primary);
+}
+
+/* ==========================================================================
+   9. STRUCTURAL SKELETON LOADERS (5-State Coverage)
+   ========================================================================== */
+
+.chronicle-skeleton {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-xs);
+  border: 1px dashed var(--border-subtle);
+  position: relative;
+  overflow: hidden;
+}
+
+.chronicle-skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200, 157, 60, 0.06) 50%,
+    transparent 100%
+  );
+  animation: skeleton-sweep 1.8s infinite;
+}
+
+@keyframes skeleton-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Ambient Tactical Canvas Overlay */
+.ambient-hero-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1200px;
+  height: 400px;
+  background: radial-gradient(circle at 50% 0%, rgba(200, 157, 60, 0.08) 0%, rgba(217, 83, 30, 0.04) 40%, transparent 75%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-grid-mesh {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, rgba(200, 157, 60, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(200, 157, 60, 0.035) 1px, transparent 1px);
+}
+
+/* Tactical Viewport & Mobile Safe Areas */
+.safe-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 1.5rem);
+}
+
+.shadow-xs {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}

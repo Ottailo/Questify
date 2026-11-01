@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuestSage NLU RPG Engine // Interactive AI Knowledge Graph</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --card-bg: rgba(16, 16, 20, 0.96);
+      --card-selected-bg: #1c1c22;
+      --border: rgba(255, 255, 255, 0.14);
+      --border-bright: rgba(255, 255, 255, 0.45);
+      --text: #ffffff;
+      --text-muted: #a1a1aa;
+      --accent-ingress: #38bdf8;
+      --accent-engine: #f59e0b;
+      --accent-persistence: #818cf8;
+      --accent-safety: #ef4444;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      background: #111114;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      z-index: 10;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-btn {
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-size: 9.5px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+    .search-box input {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      color: #fff;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      outline: none;
+      width: 160px;
+    }
+    .main-stage {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      cursor: grab;
+      background-size: 24px 24px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    }
+    .main-stage:active { cursor: grabbing; }
+    .stage-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      width: 1200px;
+      height: 650px;
+    }
+    svg.edges-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .edge-dash-flow {
+      stroke-dasharray: 6 6;
+      animation: dash 25s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes dash { to { stroke-dashoffset: -1000; } }
+    .node-card {
+      position: absolute;
+      width: 236px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+      user-select: none;
+      backdrop-filter: blur(12px);
+    }
+    .node-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-bright);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.9);
+      z-index: 10;
+    }
+    .node-card.selected {
+      border-color: #ffffff;
+      box-shadow: 0 0 0 1.5px #ffffff, 0 12px 30px rgba(0, 0, 0, 0.95);
+      background: var(--card-selected-bg);
+      z-index: 15;
+    }
+    .node-card.dimmed {
+      opacity: 0.14;
+      filter: grayscale(90%);
+    }
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .node-type {
+      color: var(--accent-ingress);
+    }
+    .node-complexity {
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      font-size: 8px;
+    }
+    .node-complexity.critical {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .node-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+      line-height: 1.35;
+    }
+    .node-tech {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .node-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 5px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+    }
+    .node-layer-tag {
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .node-sla {
+      color: #34d399;
+      font-weight: 700;
+    }
+    .inspector {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 330px;
+      height: 100%;
+      background: rgba(12, 12, 15, 0.98);
+      border-left: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      padding: 16px;
+      overflow-y: auto;
+      z-index: 25;
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .inspector-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .inspector-section-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .inspector-box {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #d4d4d8;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 18px;
+      background: #111114;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      z-index: 10;
+    }
+    .edge-badge-rect {
+      fill: #0c0c10;
+      stroke: rgba(255, 255, 255, 0.16);
+      stroke-width: 1;
+      rx: 4;
+    }
+    .edge-badge-text {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      fill: #d4d4d8;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <span style="font-weight: 700; color: #fff;">QuestSage NLU RPG Engine</span>
+      <span class="badge">14 NODES</span>
+      <span class="badge" style="background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); color: #38bdf8;">NOIR MONOLITH AI GRAPH</span>
+    </div>
+    <div class="filter-group">
+      <button class="filter-btn active" data-layer="all">ALL TIERS</button>
+      <button class="filter-btn" data-layer="ingress">INGRESS</button>
+      <button class="filter-btn" data-layer="engine">ENGINE</button>
+      <button class="filter-btn" data-layer="persistence">PERSISTENCE</button>
+      <button class="filter-btn" data-layer="safety">SAFETY</button>
+    </div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search component...">
+    </div>
+  </header>
+
+  <div class="main-stage" id="stage">
+    <div class="stage-container" id="stageContainer">
+      <svg class="edges-layer" id="edgesLayer">
+        <defs>
+          <marker id="arrow-idle" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 2 L 7 5 L 0 8 z" fill="rgba(255, 255, 255, 0.28)" />
+          </marker>
+          <marker id="arrow-inbound" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 2 L 7 5 L 0 8 z" fill="#38bdf8" />
+          </marker>
+          <marker id="arrow-outbound" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 2 L 7 5 L 0 8 z" fill="#34d399" />
+          </marker>
+          <marker id="arrow-control" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 2 L 7 5 L 0 8 z" fill="#f59e0b" />
+          </marker>
+          <marker id="arrow-safety" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 2 L 7 5 L 0 8 z" fill="#ef4444" />
+          </marker>
+        </defs>
+      </svg>
+      <div id="nodesContainer"></div>
+    </div>
+
+    <div class="inspector" id="inspector" style="display: none;">
+      <div>
+        <div class="inspector-title" id="inspName"></div>
+        <div style="margin-top: 4px;" id="inspMeta"></div>
+      </div>
+      <div>
+        <div class="inspector-section-label">Plain-English Role</div>
+        <div class="inspector-box" id="inspSummary"></div>
+      </div>
+      <div>
+        <div class="inspector-section-label">Runtime & SLA</div>
+        <div class="inspector-box" style="font-family: var(--font-mono); font-size: 11px;">
+          <div id="inspTech" style="color: #38bdf8; margin-bottom: 4px;"></div>
+          <div id="inspSla" style="color: #34d399; font-weight: 700;"></div>
+        </div>
+      </div>
+      <div id="inspContractsSection">
+        <div class="inspector-section-label">Data Contracts</div>
+        <div class="inspector-box" id="inspContracts" style="font-family: var(--font-mono); font-size: 10.5px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>● DRAG TO PAN · SCROLL TO ZOOM · CLICK NODE TO INSPECT TELEMETRY</div>
+    <div>UNDERSTAND-ANYTHING ARCHITECTURE SPECIFICATION</div>
+  </footer>
+
+  <script>
+    const GRAPH_DATA = {"$schema":"https://understand-anything.dev/schemas/knowledge-graph.v1.json","name":"QuestSage NLU RPG Engine","version":"2.5.0","description":"Natural-Language Intent Parser, Digital Lifestyle Profile (DLP) state machine, and adaptive RPG quest generator.","nodes":[{"id":"QuestSage-hud","name":"Client HUD & Quest Console","type":"interface","layer":"ingress","complexity":"moderate","tech":"React 19 · Vite · CSS Grid","sla":"< 16ms (60 FPS)","summary":"RPG-styled dashboard rendering active quest tree cards, streak flames, level progression, and voice/text ambition console.","inputs":["User Ambition String","Mic Audio"],"outputs":["Sanitized Goal Payload","JWT Auth Header"]},{"id":"QuestSage-api","name":"FastAPI Universal Gateway","type":"endpoint","layer":"ingress","complexity":"simple","tech":"FastAPI · Pydantic V2 · Uvicorn","sla":"< 4ms latency","summary":"Universal entry point performing token validation, rate-limiting, and async route dispatching to NLU pipelines.","inputs":["POST /api/v1/quests/parse","JWT Bearer Token"],"outputs":["Validated Ambition Object","Trace ID"]},{"id":"great-sage-tokenizer","name":"Great Sage Regex Tokenizer","type":"pipeline","layer":"engine","complexity":"simple","tech":"Python 3.12 · Pre-compiled Regex","sla":"< 2ms scan","summary":"High-speed deterministic lexical analyzer extracting action verbs, timeframe markers, and intensity qualifiers.","inputs":["Validated Ambition Object"],"outputs":["Token Stream","Grammar Tag Tuple"]},{"id":"great-sage-nlu","name":"Great Sage Domain Classifier","type":"service","layer":"engine","complexity":"critical","tech":"Embedding Vectors · Intent Matrix","sla":"< 22ms inference","summary":"Classifies real-world ambitions into skill domains (Systems, Fitness, Wealth, Career) and estimates cognitive load.","inputs":["Token Stream","User Skill History"],"outputs":["Domain Category","Base XP Budget","Confidence Score"]},{"id":"dlp-engine","name":"DLP Behavioral Evaluator","type":"pipeline","layer":"engine","complexity":"moderate","tech":"Digital Lifestyle Profile State Graph","sla":"< 6ms evaluation","summary":"Calculates user burnout probability, momentum streak multipliers, and scales quest difficulty tiers (Rank E to S) adaptively.","inputs":["Historic Streak Data","Past 7-day Completion Ratio"],"outputs":["Difficulty Multiplier (E → S)","Fatigue Index"]},{"id":"quest-tree-synthesizer","name":"Adaptive Subtask Tree Generator","type":"service","layer":"engine","complexity":"critical","tech":"DAG Graph Synthesizer · Procedural Rules","sla":"< 18ms generation","summary":"Decomposes high-level ambitions into a chronological tree of 3-5 concrete actionable subtasks with individual XP rewards.","inputs":["Domain Category","Difficulty Multiplier","Base XP Budget"],"outputs":["Quest Tree Object","Subtasks Array","Unlock Dependencies"]},{"id":"ws-broadcaster","name":"WebSocket Live Sync Daemon","type":"service","layer":"engine","complexity":"simple","tech":"FastAPI WebSockets · asyncio pool","sla":"< 12ms broadcast","summary":"Broadcasts real-time XP changes, quest unlocks, level-up fanfares, and audio event cues to connected client HUDs.","inputs":["State Delta Event","Client Connection Pool"],"outputs":["Binary / JSON Frame Broadcast"]},{"id":"web-audio-fx","name":"Web Audio Sound Synthesizer","type":"service","layer":"engine","complexity":"simple","tech":"Web Audio API · Procedural Oscillator","sla":"< 1ms trigger","summary":"Generates tactile quest completion fanfare, level-up chimes, and streak pulses procedurally in the browser.","inputs":["Audio Event Cue"],"outputs":["Synthesized Audio Waveform"]},{"id":"postgres-db","name":"Relational Progression DB","type":"table","layer":"persistence","complexity":"moderate","tech":"PostgreSQL 16 · SQLAlchemy 2.0 Async","sla":"< 5ms transaction","summary":"Persists user profile states, active and completed quest trees, checklist progression nodes, and historic XP logs.","inputs":["Committed Quest Transaction","Checklist State Mutator"],"outputs":["Profile Record","Historic Streak Ledger"]},{"id":"dlp-state-store","name":"DLP Behavioral Memory Buffer","type":"table","layer":"persistence","complexity":"simple","tech":"Redis 7.2 / JSON State Blob","sla":"< 1ms cache read","summary":"In-memory fast state buffer maintaining active user streaks, fatigue counters, and rolling 14-day momentum vectors.","inputs":["User Activity Timestamp","Energy Level Input"],"outputs":["Fatigue Score (0.0-1.0)","Streak Multiplier"]},{"id":"vector-habit-index","name":"Vector Habit & Ambition Index","type":"table","layer":"persistence","complexity":"moderate","tech":"ChromaDB · Cosine Vector Space","sla":"< 8ms vector query","summary":"Semantic embeddings of historic user ambitions and habit streaks, enabling Great Sage to detect cross-domain synergies.","inputs":["Ambition Semantic Vector","User ID"],"outputs":["Top-3 Synergistic Past Habits","Similarity Score"]},{"id":"intent-clarifier-guard","name":"Ambiguity Clarification Guard","type":"circuit-breaker","layer":"safety","complexity":"moderate","tech":"Deterministic Confidence Gate (< 0.50)","sla":"< 2ms trip response","summary":"Intercepts NLU classifications with confidence score < 0.50, immediately halting synthesis and triggering interactive clarification prompts.","inputs":["NLU Confidence Metric"],"outputs":["Halt Signal","Interactive Prompt Questionnaire"]},{"id":"anti-burnout-guard","name":"Anti-Burnout Fatigue Guard","type":"circuit-breaker","layer":"safety","complexity":"critical","tech":"Decay Function & Micro-Quest Dispatcher","sla":"< 1ms trigger","summary":"Trips when inactivity > 3 consecutive days; automatically freezes harsh streak penalties and injects low-friction micro-quests.","inputs":["Days Since Last Action","Fatigue Index"],"outputs":["Penalty Freeze Flag","Restorative Quest Injection"]},{"id":"rate-limit-breaker","name":"Client Ingress Rate Throttler","type":"circuit-breaker","layer":"safety","complexity":"simple","tech":"Token Bucket (20 req / min limit)","sla":"< 0.5ms filter","summary":"Prevents automated bot spam from abusing NLP parse compute by enforcing a sliding per-user request ceiling.","inputs":["Client IP","User ID"],"outputs":["Pass / 429 Throttle Exception"]}],"edges":[{"source":"QuestSage-hud","target":"QuestSage-api","label":"HTTPS / JWT","type":"control"},{"source":"QuestSage-api","target":"great-sage-tokenizer","label":"Raw Ambition","type":"data"},{"source":"great-sage-tokenizer","target":"great-sage-nlu","label":"Tokens","type":"data"},{"source":"great-sage-nlu","target":"dlp-engine","label":"Domain & Score","type":"data"},{"source":"dlp-state-store","target":"dlp-engine","label":"Fatigue Vector","type":"data"},{"source":"dlp-engine","target":"quest-tree-synthesizer","label":"Difficulty Tier","type":"data"},{"source":"great-sage-nlu","target":"quest-tree-synthesizer","label":"Base XP","type":"data"},{"source":"quest-tree-synthesizer","target":"postgres-db","label":"Committed Tree","type":"data"},{"source":"postgres-db","target":"ws-broadcaster","label":"State Event","type":"stream"},{"source":"ws-broadcaster","target":"QuestSage-hud","label":"WebSocket Frame","type":"stream"},{"source":"ws-broadcaster","target":"web-audio-fx","label":"Sound Cue","type":"stream"},{"source":"great-sage-nlu","target":"vector-habit-index","label":"Semantic Vector","type":"data"},{"source":"great-sage-nlu","target":"intent-clarifier-guard","label":"Score Check","type":"safety"},{"source":"dlp-engine","target":"anti-burnout-guard","label":"Fatigue State","type":"safety"},{"source":"QuestSage-api","target":"rate-limit-breaker","label":"Ingress Stream","type":"safety"}],"layers":[{"id":"layer:ingress","name":"Ingress & Gateway Layer","description":"Client HUDs, gateways, and auth filters.","nodeIds":["QuestSage-hud","QuestSage-api"]},{"id":"layer:engine","name":"Core Engine & Orchestration Layer","description":"Domain logic, state machines, and autonomous pipelines.","nodeIds":["great-sage-tokenizer","great-sage-nlu","dlp-engine","quest-tree-synthesizer","ws-broadcaster","web-audio-fx"]},{"id":"layer:persistence","name":"State & Data Persistence Layer","description":"Relational tables, vector embeddings, and memory caches.","nodeIds":["postgres-db","dlp-state-store","vector-habit-index"]},{"id":"layer:safety","name":"Circuit Breakers & Guards Layer","description":"Defensive interlocks, kill switches, and anti-cheat traps.","nodeIds":["intent-clarifier-guard","anti-burnout-guard","rate-limit-breaker"]}]};
+    const LAYER_COLORS = {
+      ingress: "#38bdf8",
+      engine: "#f59e0b",
+      persistence: "#818cf8",
+      safety: "#ef4444"
+    };
+
+    const CARD_W = 236;
+    const CARD_H = 92;
+    const GAP_Y = 22;
+
+    // Dynamic 5-Tier Pipeline Layout Calculation
+    function computeLayout(nodes) {
+      const cols = { 0: [], 1: [], 2: [], 3: [], 4: [] };
+      nodes.forEach(n => {
+        let col = 2; // Default: Core Engine
+        if (n.layer === "safety" || n.type === "circuit-breaker") col = 4;
+        else if (n.layer === "persistence" || n.type === "table") col = 3;
+        else if (n.type === "interface") col = 0;
+        else if (n.layer === "ingress" || n.type === "endpoint") col = 1;
+        cols[col].push(n);
+      });
+      const colX = { 0: 40, 1: 340, 2: 640, 3: 940, 4: 1240 };
+      const positions = {};
+      let maxH = 0;
+      Object.entries(cols).forEach(([colIndex, colNodes]) => {
+        const x = colX[colIndex];
+        colNodes.forEach((node, idx) => {
+          const y = 35 + idx * (CARD_H + GAP_Y);
+          positions[node.id] = { x, y };
+          if (y + CARD_H > maxH) maxH = y + CARD_H;
+        });
+      });
+      return { positions, bounds: { width: 1540, height: Math.max(maxH + 50, 560) } };
+    }
+
+    const { positions, bounds } = computeLayout(GRAPH_DATA.nodes);
+    const container = document.getElementById("stageContainer");
+    container.style.width = bounds.width + "px";
+    container.style.height = bounds.height + "px";
+
+    let selectedNodeId = null; // Start with null so all connections are prominently visible
+    let currentFilter = "all";
+    let searchQuery = "";
+
+    let scale = 0.78;
+    let panX = 40;
+    let panY = 30;
+    let isPanning = false;
+    let startX = 0, startY = 0;
+
+    const stage = document.getElementById("stage");
+    function updateTransform() {
+      container.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+    }
+    updateTransform();
+
+    stage.addEventListener("mousedown", (e) => {
+      if (e.target.closest(".node-card") || e.target.closest(".inspector")) return;
+      selectedNodeId = null; // Clicking empty canvas deselects and restores all connections
+      renderNodes();
+      renderEdges();
+      document.getElementById("inspector").style.display = "none";
+      isPanning = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!isPanning) return;
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    });
+    window.addEventListener("mouseup", () => { isPanning = false; });
+    stage.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.08 : 0.08;
+      scale = Math.min(Math.max(scale + delta, 0.4), 2.2);
+      updateTransform();
+    });
+
+    const nodesContainer = document.getElementById("nodesContainer");
+    const edgesLayer = document.getElementById("edgesLayer");
+
+    function getEdgePath(s, t) {
+      const isForward = t.x > s.x + 50;
+      const isSameColumn = Math.abs(t.x - s.x) < 50;
+
+      if (isForward) {
+        const sX = s.x + CARD_W;
+        const sY = s.y + CARD_H / 2;
+        const tX = t.x - 2;
+        const tY = t.y + CARD_H / 2;
+        const dx = Math.max(Math.abs(tX - sX) * 0.5, 35);
+        return {
+          pathD: `M ${sX} ${sY} C ${sX + dx} ${sY}, ${tX - dx} ${tY}, ${tX} ${tY}`,
+          midX: (sX + tX) / 2,
+          midY: (sY + tY) / 2
+        };
+      }
+
+      if (isSameColumn) {
+        const sX = s.x + CARD_W;
+        const sY = s.y + CARD_H * (t.y > s.y ? 0.65 : 0.35);
+        const loopX = sX + 45;
+        const tX = t.x + CARD_W + 2;
+        const tY = t.y + CARD_H * (t.y > s.y ? 0.35 : 0.65);
+        return {
+          pathD: `M ${sX} ${sY} C ${loopX} ${sY}, ${loopX} ${tY}, ${tX} ${tY}`,
+          midX: loopX + 8,
+          midY: (sY + tY) / 2
+        };
+      }
+
+      const sX = s.x;
+      const sY = s.y + CARD_H / 2;
+      const tX = t.x + CARD_W + 2;
+      const tY = t.y + CARD_H / 2;
+      const vOffset = t.y >= s.y ? 40 : -40;
+      return {
+        pathD: `M ${sX} ${sY} C ${sX - 40} ${sY + vOffset}, ${tX + 40} ${tY - vOffset}, ${tX} ${tY}`,
+        midX: (sX + tX) / 2,
+        midY: (sY + tY) / 2 + vOffset
+      };
+    }
+
+    function renderEdges() {
+      const defs = edgesLayer.querySelector("defs").outerHTML;
+      let svgHtml = defs;
+      GRAPH_DATA.edges.forEach(edge => {
+        const s = positions[edge.source];
+        const t = positions[edge.target];
+        if (!s || !t) return;
+        const { pathD, midX, midY } = getEdgePath(s, t);
+
+        const isIn = selectedNodeId && edge.target === selectedNodeId;
+        const isOut = selectedNodeId && edge.source === selectedNodeId;
+        const isConn = isIn || isOut;
+
+        let stroke = "rgba(255, 255, 255, 0.35)";
+        let marker = "arrow-idle";
+        let strokeW = 1.8;
+        let opacity = 0.75;
+
+        if (selectedNodeId) {
+          if (isIn) { stroke = "#38bdf8"; marker = "arrow-inbound"; strokeW = 3.0; opacity = 1.0; }
+          else if (isOut) { stroke = "#34d399"; marker = "arrow-outbound"; strokeW = 3.0; opacity = 1.0; }
+          else if (edge.type === "safety") { stroke = "rgba(239, 68, 68, 0.75)"; marker = "arrow-safety"; strokeW = 2.4; opacity = isConn ? 1.0 : 0.22; }
+          else { opacity = 0.18; strokeW = 1.2; }
+        } else {
+          // IDLE STATE: PROMINENTLY ILLUMINATED CONNECTIONS
+          if (edge.type === "safety") { stroke = "rgba(239, 68, 68, 0.65)"; marker = "arrow-safety"; }
+          else if (edge.type === "control") { stroke = "rgba(245, 158, 11, 0.65)"; marker = "arrow-control"; }
+          else if (edge.type === "stream") { stroke = "rgba(52, 211, 153, 0.65)"; marker = "arrow-outbound"; }
+          else { stroke = "rgba(56, 189, 248, 0.65)"; marker = "arrow-inbound"; }
+          strokeW = 1.8;
+          opacity = 0.85;
+        }
+
+        if (isConn) {
+          svgHtml += `<path d="${pathD}" fill="none" stroke="${stroke}" stroke-width="6.0" opacity="0.4" style="filter: blur(2.5px);" />`;
+        }
+        svgHtml += `<path d="${pathD}" fill="none" stroke="${stroke}" stroke-width="${strokeW}" opacity="${opacity}" marker-end="url(#${marker})" />`;
+        svgHtml += `<path d="${pathD}" fill="none" stroke="${isConn ? stroke : 'rgba(255, 255, 255, 0.45)'}" stroke-width="${Math.max(strokeW - 0.4, 1.2)}" opacity="${isConn ? 0.95 : (selectedNodeId ? 0.22 : 0.65)}" class="edge-dash-flow" />`;
+
+        if (edge.label) {
+          const w = edge.label.length * 6.2 + 16;
+          svgHtml += `<g transform="translate(${midX}, ${midY})">
+            <rect x="${-w/2}" y="-9" width="${w}" height="18" class="edge-badge-rect" style="stroke: ${isConn ? stroke : 'rgba(255, 255, 255, 0.18)'};" />
+            <text class="edge-badge-text">${edge.label}</text>
+          </g>`;
+        }
+      });
+      edgesLayer.innerHTML = svgHtml;
+    }
+
+    function renderNodes() {
+      nodesContainer.innerHTML = "";
+      GRAPH_DATA.nodes.forEach(node => {
+        const pos = positions[node.id] || { x: 0, y: 0 };
+        const color = LAYER_COLORS[node.layer] || "#38bdf8";
+        const isSelected = selectedNodeId === node.id;
+
+        let matchesFilter = currentFilter === "all" || node.layer === currentFilter;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          matchesFilter = matchesFilter && (
+            node.name.toLowerCase().includes(q) ||
+            (node.tech && node.tech.toLowerCase().includes(q)) ||
+            (node.summary && node.summary.toLowerCase().includes(q))
+          );
+        }
+
+        const card = document.createElement("div");
+        card.className = `node-card ${isSelected ? "selected" : ""} ${!matchesFilter ? "dimmed" : ""}`;
+        card.style.left = pos.x + "px";
+        card.style.top = pos.y + "px";
+        card.style.borderLeft = `3px solid ${color}`;
+
+        card.innerHTML = `
+          <div class="node-header">
+            <span class="node-type" style="color: ${color};">${node.type || 'service'}</span>
+            <span class="node-complexity ${node.complexity || 'simple'}">${node.complexity || 'simple'}</span>
+          </div>
+          <div class="node-title">${node.name}</div>
+          <div class="node-tech">${node.tech || ''}</div>
+          <div class="node-footer">
+            <span class="node-layer-tag" style="color: ${color};">${node.layer}</span>
+            <span class="node-sla">${node.sla || ''}</span>
+          </div>
+        `;
+
+        card.addEventListener("click", () => {
+          selectedNodeId = node.id;
+          renderNodes();
+          renderEdges();
+          updateInspector(node);
+        });
+
+        nodesContainer.appendChild(card);
+      });
+    }
+
+    function updateInspector(node) {
+      const insp = document.getElementById("inspector");
+      insp.style.display = "flex";
+      document.getElementById("inspName").innerText = node.name;
+      const color = LAYER_COLORS[node.layer] || "#38bdf8";
+      document.getElementById("inspMeta").innerHTML = `<span class="badge" style="color: ${color}; border-color: ${color};">${node.layer.toUpperCase()}</span> <span class="badge">${node.complexity?.toUpperCase() || 'SIMPLE'}</span>`;
+      document.getElementById("inspSummary").innerText = node.summary || "No description provided.";
+      document.getElementById("inspTech").innerText = node.tech || "";
+      document.getElementById("inspSla").innerText = node.sla ? "Target SLA: " + node.sla : "";
+
+      const contracts = document.getElementById("inspContracts");
+      let cHtml = "";
+      if (node.inputs && node.inputs.length) {
+        cHtml += "<strong>INPUTS:</strong><br>" + node.inputs.map(i => "● " + i).join("<br>") + "<br><br>";
+      }
+      if (node.outputs && node.outputs.length) {
+        cHtml += "<strong>OUTPUTS:</strong><br>" + node.outputs.map(o => "● " + o).join("<br>");
+      }
+      contracts.innerHTML = cHtml || "No explicit contracts defined.";
+    }
+
+    // Filter Buttons
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.layer;
+        renderNodes();
+      });
+    });
+
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      renderNodes();
+    });
+
+    renderNodes();
+    renderEdges();
+    if (GRAPH_DATA.nodes[0]) updateInspector(GRAPH_DATA.nodes[0]);
+  </script>
+</body>
+</html>

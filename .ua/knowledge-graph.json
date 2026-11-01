@@ -1,0 +1,393 @@
+{
+  "$schema": "https://understand-anything.dev/schemas/knowledge-graph.v1.json",
+  "name": "Questify NLU RPG Engine",
+  "version": "2.5.0",
+  "description": "Natural-Language Intent Parser, Digital Lifestyle Profile (DLP) state machine, and adaptive RPG quest generator.",
+  "nodes": [
+    {
+      "id": "questify-hud",
+      "name": "Client HUD & Quest Console",
+      "type": "interface",
+      "layer": "ingress",
+      "complexity": "moderate",
+      "tech": "React 19 · Vite · CSS Grid",
+      "sla": "< 16ms (60 FPS)",
+      "summary": "RPG-styled dashboard rendering active quest tree cards, streak flames, level progression, and voice/text ambition console.",
+      "inputs": [
+        "User Ambition String",
+        "Mic Audio"
+      ],
+      "outputs": [
+        "Sanitized Goal Payload",
+        "JWT Auth Header"
+      ]
+    },
+    {
+      "id": "questify-api",
+      "name": "FastAPI Universal Gateway",
+      "type": "endpoint",
+      "layer": "ingress",
+      "complexity": "simple",
+      "tech": "FastAPI · Pydantic V2 · Uvicorn",
+      "sla": "< 4ms latency",
+      "summary": "Universal entry point performing token validation, rate-limiting, and async route dispatching to NLU pipelines.",
+      "inputs": [
+        "POST /api/v1/quests/parse",
+        "JWT Bearer Token"
+      ],
+      "outputs": [
+        "Validated Ambition Object",
+        "Trace ID"
+      ]
+    },
+    {
+      "id": "great-sage-tokenizer",
+      "name": "Great Sage Regex Tokenizer",
+      "type": "pipeline",
+      "layer": "engine",
+      "complexity": "simple",
+      "tech": "Python 3.12 · Pre-compiled Regex",
+      "sla": "< 2ms scan",
+      "summary": "High-speed deterministic lexical analyzer extracting action verbs, timeframe markers, and intensity qualifiers.",
+      "inputs": [
+        "Validated Ambition Object"
+      ],
+      "outputs": [
+        "Token Stream",
+        "Grammar Tag Tuple"
+      ]
+    },
+    {
+      "id": "great-sage-nlu",
+      "name": "Great Sage Domain Classifier",
+      "type": "service",
+      "layer": "engine",
+      "complexity": "critical",
+      "tech": "Embedding Vectors · Intent Matrix",
+      "sla": "< 22ms inference",
+      "summary": "Classifies real-world ambitions into skill domains (Systems, Fitness, Wealth, Career) and estimates cognitive load.",
+      "inputs": [
+        "Token Stream",
+        "User Skill History"
+      ],
+      "outputs": [
+        "Domain Category",
+        "Base XP Budget",
+        "Confidence Score"
+      ]
+    },
+    {
+      "id": "dlp-engine",
+      "name": "DLP Behavioral Evaluator",
+      "type": "pipeline",
+      "layer": "engine",
+      "complexity": "moderate",
+      "tech": "Digital Lifestyle Profile State Graph",
+      "sla": "< 6ms evaluation",
+      "summary": "Calculates user burnout probability, momentum streak multipliers, and scales quest difficulty tiers (Rank E to S) adaptively.",
+      "inputs": [
+        "Historic Streak Data",
+        "Past 7-day Completion Ratio"
+      ],
+      "outputs": [
+        "Difficulty Multiplier (E → S)",
+        "Fatigue Index"
+      ]
+    },
+    {
+      "id": "quest-tree-synthesizer",
+      "name": "Adaptive Subtask Tree Generator",
+      "type": "service",
+      "layer": "engine",
+      "complexity": "critical",
+      "tech": "DAG Graph Synthesizer · Procedural Rules",
+      "sla": "< 18ms generation",
+      "summary": "Decomposes high-level ambitions into a chronological tree of 3-5 concrete actionable subtasks with individual XP rewards.",
+      "inputs": [
+        "Domain Category",
+        "Difficulty Multiplier",
+        "Base XP Budget"
+      ],
+      "outputs": [
+        "Quest Tree Object",
+        "Subtasks Array",
+        "Unlock Dependencies"
+      ]
+    },
+    {
+      "id": "ws-broadcaster",
+      "name": "WebSocket Live Sync Daemon",
+      "type": "service",
+      "layer": "engine",
+      "complexity": "simple",
+      "tech": "FastAPI WebSockets · asyncio pool",
+      "sla": "< 12ms broadcast",
+      "summary": "Broadcasts real-time XP changes, quest unlocks, level-up fanfares, and audio event cues to connected client HUDs.",
+      "inputs": [
+        "State Delta Event",
+        "Client Connection Pool"
+      ],
+      "outputs": [
+        "Binary / JSON Frame Broadcast"
+      ]
+    },
+    {
+      "id": "web-audio-fx",
+      "name": "Web Audio Sound Synthesizer",
+      "type": "service",
+      "layer": "engine",
+      "complexity": "simple",
+      "tech": "Web Audio API · Procedural Oscillator",
+      "sla": "< 1ms trigger",
+      "summary": "Generates tactile quest completion fanfare, level-up chimes, and streak pulses procedurally in the browser.",
+      "inputs": [
+        "Audio Event Cue"
+      ],
+      "outputs": [
+        "Synthesized Audio Waveform"
+      ]
+    },
+    {
+      "id": "postgres-db",
+      "name": "Relational Progression DB",
+      "type": "table",
+      "layer": "persistence",
+      "complexity": "moderate",
+      "tech": "PostgreSQL 16 · SQLAlchemy 2.0 Async",
+      "sla": "< 5ms transaction",
+      "summary": "Persists user profile states, active and completed quest trees, checklist progression nodes, and historic XP logs.",
+      "inputs": [
+        "Committed Quest Transaction",
+        "Checklist State Mutator"
+      ],
+      "outputs": [
+        "Profile Record",
+        "Historic Streak Ledger"
+      ]
+    },
+    {
+      "id": "dlp-state-store",
+      "name": "DLP Behavioral Memory Buffer",
+      "type": "table",
+      "layer": "persistence",
+      "complexity": "simple",
+      "tech": "Redis 7.2 / JSON State Blob",
+      "sla": "< 1ms cache read",
+      "summary": "In-memory fast state buffer maintaining active user streaks, fatigue counters, and rolling 14-day momentum vectors.",
+      "inputs": [
+        "User Activity Timestamp",
+        "Energy Level Input"
+      ],
+      "outputs": [
+        "Fatigue Score (0.0-1.0)",
+        "Streak Multiplier"
+      ]
+    },
+    {
+      "id": "vector-habit-index",
+      "name": "Vector Habit & Ambition Index",
+      "type": "table",
+      "layer": "persistence",
+      "complexity": "moderate",
+      "tech": "ChromaDB · Cosine Vector Space",
+      "sla": "< 8ms vector query",
+      "summary": "Semantic embeddings of historic user ambitions and habit streaks, enabling Great Sage to detect cross-domain synergies.",
+      "inputs": [
+        "Ambition Semantic Vector",
+        "User ID"
+      ],
+      "outputs": [
+        "Top-3 Synergistic Past Habits",
+        "Similarity Score"
+      ]
+    },
+    {
+      "id": "intent-clarifier-guard",
+      "name": "Ambiguity Clarification Guard",
+      "type": "circuit-breaker",
+      "layer": "safety",
+      "complexity": "moderate",
+      "tech": "Deterministic Confidence Gate (< 0.50)",
+      "sla": "< 2ms trip response",
+      "summary": "Intercepts NLU classifications with confidence score < 0.50, immediately halting synthesis and triggering interactive clarification prompts.",
+      "inputs": [
+        "NLU Confidence Metric"
+      ],
+      "outputs": [
+        "Halt Signal",
+        "Interactive Prompt Questionnaire"
+      ]
+    },
+    {
+      "id": "anti-burnout-guard",
+      "name": "Anti-Burnout Fatigue Guard",
+      "type": "circuit-breaker",
+      "layer": "safety",
+      "complexity": "critical",
+      "tech": "Decay Function & Micro-Quest Dispatcher",
+      "sla": "< 1ms trigger",
+      "summary": "Trips when inactivity > 3 consecutive days; automatically freezes harsh streak penalties and injects low-friction micro-quests.",
+      "inputs": [
+        "Days Since Last Action",
+        "Fatigue Index"
+      ],
+      "outputs": [
+        "Penalty Freeze Flag",
+        "Restorative Quest Injection"
+      ]
+    },
+    {
+      "id": "rate-limit-breaker",
+      "name": "Client Ingress Rate Throttler",
+      "type": "circuit-breaker",
+      "layer": "safety",
+      "complexity": "simple",
+      "tech": "Token Bucket (20 req / min limit)",
+      "sla": "< 0.5ms filter",
+      "summary": "Prevents automated bot spam from abusing NLP parse compute by enforcing a sliding per-user request ceiling.",
+      "inputs": [
+        "Client IP",
+        "User ID"
+      ],
+      "outputs": [
+        "Pass / 429 Throttle Exception"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "questify-hud",
+      "target": "questify-api",
+      "label": "HTTPS / JWT",
+      "type": "control"
+    },
+    {
+      "source": "questify-api",
+      "target": "great-sage-tokenizer",
+      "label": "Raw Ambition",
+      "type": "data"
+    },
+    {
+      "source": "great-sage-tokenizer",
+      "target": "great-sage-nlu",
+      "label": "Tokens",
+      "type": "data"
+    },
+    {
+      "source": "great-sage-nlu",
+      "target": "dlp-engine",
+      "label": "Domain & Score",
+      "type": "data"
+    },
+    {
+      "source": "dlp-state-store",
+      "target": "dlp-engine",
+      "label": "Fatigue Vector",
+      "type": "data"
+    },
+    {
+      "source": "dlp-engine",
+      "target": "quest-tree-synthesizer",
+      "label": "Difficulty Tier",
+      "type": "data"
+    },
+    {
+      "source": "great-sage-nlu",
+      "target": "quest-tree-synthesizer",
+      "label": "Base XP",
+      "type": "data"
+    },
+    {
+      "source": "quest-tree-synthesizer",
+      "target": "postgres-db",
+      "label": "Committed Tree",
+      "type": "data"
+    },
+    {
+      "source": "postgres-db",
+      "target": "ws-broadcaster",
+      "label": "State Event",
+      "type": "stream"
+    },
+    {
+      "source": "ws-broadcaster",
+      "target": "questify-hud",
+      "label": "WebSocket Frame",
+      "type": "stream"
+    },
+    {
+      "source": "ws-broadcaster",
+      "target": "web-audio-fx",
+      "label": "Sound Cue",
+      "type": "stream"
+    },
+    {
+      "source": "great-sage-nlu",
+      "target": "vector-habit-index",
+      "label": "Semantic Vector",
+      "type": "data"
+    },
+    {
+      "source": "great-sage-nlu",
+      "target": "intent-clarifier-guard",
+      "label": "Score Check",
+      "type": "safety"
+    },
+    {
+      "source": "dlp-engine",
+      "target": "anti-burnout-guard",
+      "label": "Fatigue State",
+      "type": "safety"
+    },
+    {
+      "source": "questify-api",
+      "target": "rate-limit-breaker",
+      "label": "Ingress Stream",
+      "type": "safety"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:ingress",
+      "name": "Ingress & Gateway Layer",
+      "description": "Client HUDs, gateways, and auth filters.",
+      "nodeIds": [
+        "questify-hud",
+        "questify-api"
+      ]
+    },
+    {
+      "id": "layer:engine",
+      "name": "Core Engine & Orchestration Layer",
+      "description": "Domain logic, state machines, and autonomous pipelines.",
+      "nodeIds": [
+        "great-sage-tokenizer",
+        "great-sage-nlu",
+        "dlp-engine",
+        "quest-tree-synthesizer",
+        "ws-broadcaster",
+        "web-audio-fx"
+      ]
+    },
+    {
+      "id": "layer:persistence",
+      "name": "State & Data Persistence Layer",
+      "description": "Relational tables, vector embeddings, and memory caches.",
+      "nodeIds": [
+        "postgres-db",
+        "dlp-state-store",
+        "vector-habit-index"
+      ]
+    },
+    {
+      "id": "layer:safety",
+      "name": "Circuit Breakers & Guards Layer",
+      "description": "Defensive interlocks, kill switches, and anti-cheat traps.",
+      "nodeIds": [
+        "intent-clarifier-guard",
+        "anti-burnout-guard",
+        "rate-limit-breaker"
+      ]
+    }
+  ]
+}
