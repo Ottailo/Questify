@@ -1,0 +1,17 @@
+{
+  "title": "System Architecture - QuestSage",
+  "diagramType": "architecture",
+  "generator": "update-docs-engine",
+  "nodes": [
+    {
+      "id": "core",
+      "label": "QuestSage Core",
+      "sub": "88 files, ~29216 LOC",
+      "x": 50,
+      "y": 50,
+      "color": "#065F46",
+      "border": "#10B981"
+    }
+  ],
+  "edges": []
+}

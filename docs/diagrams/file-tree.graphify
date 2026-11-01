@@ -1,0 +1,17 @@
+{
+  "title": "File Structure - Questify",
+  "diagramType": "file-tree",
+  "generator": "update-docs-engine",
+  "nodes": [
+    {
+      "id": "root",
+      "label": "Questify/",
+      "sub": "88 files, ~29,216 LOC",
+      "x": 50,
+      "y": 50,
+      "color": "#1E3A8A",
+      "border": "#3B82F6"
+    }
+  ],
+  "edges": []
+}

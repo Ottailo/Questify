@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+**/node_modules/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Build outputs
+build/
+**/build/
+dist/
+**/dist/
+*.egg-info/
+.eggs/
+
+# Environments & secrets
+.env
+.env.*
+.env.local
+!.env.example
+*.local
+
+# Vercel
+.vercel
+**/.vercel/
+
+# Databases
+*.db
+*.sqlite3
+
+# Git backups
+.git_bak
+**/.git_bak/
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Testing & Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Agent Memory (Strict Anti-Leak Protocol)
+.agents/
+*.local.md
+GLOBAL_MEMORY.md
+PROJECT_MEMORY.md
+QuestSage.md
+Questify.md
