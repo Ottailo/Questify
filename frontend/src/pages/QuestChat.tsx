@@ -1,331 +1,369 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  Send,
-  Brain
-} from 'lucide-react';
+import { Send, Sparkles, Plus, Check, Loader2 } from 'lucide-react';
 import { questsageAPI } from '../services/api';
-import Navigation from '../components/Navigation';
+
+interface BlueprintStep {
+  title: string;
+  xp_value: number;
+  estimated_duration: number;
+}
+
+interface Blueprint {
+  title: string;
+  description: string;
+  difficulty: string;
+  xp_value: number;
+  estimated_duration: number;
+  steps: BlueprintStep[];
+}
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'sage';
+  sender: 'user' | 'planner';
   timestamp: Date;
-  intent?: string;
   suggestions?: string[];
+  blueprint?: Blueprint | null;
+  saved?: boolean;
 }
 
-const QuestChat: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: "Hail, Chronicler. The Great Sage stands ready at the Guild Archive. Dictate your operational blockers, request campaign milestone deconstruction, or seek tactical calibration for today's roster.",
-      sender: 'sage',
-      timestamp: new Date(),
-      suggestions: [
-        "Deconstruct a complex objective into weighted subtasks",
-        "Calibrate fatigue and suggest a low-friction sprint",
-        "Audit my active quest ledger for blockers"
-      ]
-    }
-  ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+const GREETING: Message = {
+  id: 'greeting',
+  text: "Tell me the goal you're stuck on and I'll break it into weighted steps you can start right now.",
+  sender: 'planner',
+  timestamp: new Date(),
+  suggestions: [
+    'Break "launch my portfolio site" into steps',
+    "I have 45 minutes and low energy — what should I do?",
+    'My goal is too vague to start'
+  ]
+};
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+const QuestChat: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([GREETING]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
+    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, isLoading]);
 
-  const quickDirectives = [
-    { label: "Deconstruct Directive", query: "Deconstruct this ambitious project into 3 weighted operational milestones." },
-    { label: "Calibrate Fatigue", query: "My mental energy is depleted. Recommend a 20-minute low-friction objective." },
-    { label: "Audit Ledger", query: "Review my current active campaigns and recommend what to tackle first." },
-    { label: "Sprint Focus", query: "Initiate a 25-minute Pomodoro focus campaign with clear completion criteria." }
+  const quickPrompts = [
+    { label: 'Break down a goal', query: 'Break this project down into weighted steps with time estimates.' },
+    { label: 'I have little energy', query: 'My energy is low. Give me one small step I can finish in 20 minutes.' },
+    { label: 'What should I do next?', query: 'Look at my active goals and tell me what to work on next.' },
+    { label: 'Start a 25 min sprint', query: 'Set up a 25 minute focus sprint with a clear finish line.' }
   ];
 
-  const handleSendMessage = async (textToSend?: string) => {
-    const messageContent = (textToSend || inputMessage).trim();
-    if (!messageContent || isLoading) return;
+  const send = async (text?: string) => {
+    const content = (text ?? input).trim();
+    if (!content || isLoading) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
-      text: messageContent,
+      id: `${Date.now()}-u`,
+      text: content,
       sender: 'user',
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+    setInput('');
     setIsLoading(true);
 
     try {
       const response = await questsageAPI.analyzeMessage({
-        message: messageContent,
+        message: content,
         user_id: 1,
-        context: { surface: 'chat-sanctuary', channel: 'great-sage' }
+        context: { surface: 'deconstruct' }
       });
 
-      const sageMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: response.message || "Directive received and chronicled. The Great Sage recommends proceeding with tactical discipline.",
-        sender: 'sage',
-        timestamp: new Date(),
-        intent: response.intent,
-        suggestions: response.suggestions
-      };
+      const raw = response.quest_data as any;
+      const blueprint: Blueprint | null = raw && raw.title
+        ? {
+            title: raw.title,
+            description: raw.description || '',
+            difficulty: raw.difficulty || 'normal',
+            xp_value: raw.xp_value || 150,
+            estimated_duration: raw.estimated_duration || 30,
+            steps: Array.isArray(raw.subtasks)
+              ? raw.subtasks.map((s: any) => ({
+                  title: s.title || s.text || 'Untitled step',
+                  xp_value: s.xp_value || 0,
+                  estimated_duration: s.estimated_duration || 0
+                }))
+              : []
+          }
+        : null;
 
-      setMessages(prev => [...prev, sageMessage]);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `${Date.now()}-p`,
+          text: response.message || 'Here is the breakdown.',
+          sender: 'planner',
+          timestamp: new Date(),
+          suggestions: response.suggestions,
+          blueprint: blueprint && blueprint.steps.length > 0 ? blueprint : null
+        }
+      ]);
     } catch (error) {
       console.error('Error analyzing message:', error);
-      const fallbackMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "The archival uplink encountered a transmission delay. However, your directive is logged: break down the milestone into measurable increments, focus on single-threaded execution, and verify before advancing.",
-        sender: 'sage',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, fallbackMessage]);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `${Date.now()}-e`,
+          text: "I couldn't reach the planner service. Your message wasn't lost — try again, or check that the backend is running on port 8000.",
+          sender: 'planner',
+          timestamp: new Date()
+        }
+      ]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const saveBlueprint = async (messageId: string, blueprint: Blueprint) => {
+    setSavingId(messageId);
+    try {
+      const total = blueprint.steps.reduce((sum, s) => sum + 1, 0) || 1;
+      await questsageAPI.createQuest(1, {
+        title: blueprint.title,
+        description: blueprint.description,
+        difficulty: blueprint.difficulty,
+        xp_value: blueprint.xp_value,
+        estimated_duration: blueprint.estimated_duration,
+        subtasks: blueprint.steps.map((step) => ({
+          text: step.title,
+          completed: false,
+          weight: Math.round(100 / total)
+        }))
+      });
+      setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, saved: true } : m)));
+    } catch (error) {
+      console.error('Error saving blueprint:', error);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `${Date.now()}-save-err`,
+          text: "Couldn't save that goal to your list. The server rejected the request — nothing was changed.",
+          sender: 'planner',
+          timestamp: new Date()
+        }
+      ]);
+    } finally {
+      setSavingId(null);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      send();
     }
   };
 
   return (
     <div className="min-h-screen min-h-[100dvh]" style={{ backgroundColor: 'var(--bg-canvas)' }}>
-      <Navigation username="Great Sage User" level={5} xp={1250} />
-
-      {/* Surface Mode: READ Sanctuary (68-75ch maximum reading column) */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-20 pb-20 safe-bottom">
-        {/* Sanctuary Header */}
-        <section className="mb-6">
-          <div
-            className="p-4 sm:p-5 rounded-lg border relative overflow-hidden"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--shadow-xs)'
-            }}
-          >
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-20 pb-24 safe-bottom">
+        <header className="mb-5">
+          <div className="flex items-center gap-3">
             <div
-              className="absolute top-0 left-0 right-0 h-0.5"
-              style={{ background: 'var(--border-brass)' }}
-            />
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0"
-                  style={{
-                    backgroundColor: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-brass)',
-                    color: 'var(--brass-primary)'
-                  }}
-                >
-                  <Brain className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="chronicle-stamp">
-                      GREAT SAGE // NLU COGNITIVE CO-PILOT
-                    </span>
-                    <span className="text-[10px] font-mono tracking-widest font-bold" style={{ color: 'var(--status-success)' }}>
-                      [ONLINE]
-                    </span>
-                  </div>
-                  <h1 className="font-display font-bold text-lg sm:text-xl tracking-wide uppercase mt-0.5" style={{ color: 'var(--text-primary)' }}>
-                    THE SCRIBE SANCTUARY
-                  </h1>
-                </div>
-              </div>
-
-              <div className="hidden sm:flex flex-col items-end text-[11px] font-mono" style={{ color: 'var(--text-muted)' }}>
-                <span>READ MODE: CALM</span>
-                <span>LATENCY: &lt;180MS</span>
-              </div>
+              className="w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: 'var(--accent-muted)', border: '1px solid var(--border-accent)', color: 'var(--accent-primary)' }}
+            >
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h1 className="font-display font-semibold text-base tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                Deconstruct
+              </h1>
+              <p className="text-xs font-body" style={{ color: 'var(--text-secondary)' }}>
+                Turn a vague goal into weighted steps you can start today.
+              </p>
             </div>
           </div>
-        </section>
+        </header>
 
-        {/* Message Stream (Focused 70ch Read Sanctuary) */}
-        <section className="mb-6">
-          <div
-            className="rounded-lg border p-4 sm:p-6 min-h-[460px] max-h-[560px] overflow-y-auto space-y-6"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--shadow-xs)'
-            }}
-          >
-            {messages.map((message) => {
-              const isSage = message.sender === 'sage';
+        <section
+          className="rounded-lg border p-4 sm:p-5 mb-4 min-h-[420px] max-h-[58vh] overflow-y-auto space-y-5"
+          style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+          aria-live="polite"
+        >
+          {messages.map((message) => {
+            const isPlanner = message.sender === 'planner';
 
-              return (
+            return (
+              <div key={message.id} className={`flex flex-col ${isPlanner ? 'items-start' : 'items-end'}`}>
+                <span className="text-[10px] font-mono uppercase tracking-wider mb-1.5 px-1" style={{ color: 'var(--text-muted)' }}>
+                  {isPlanner ? 'Planner' : 'You'} · {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+
                 <div
-                  key={message.id}
-                  className={`flex flex-col ${isSage ? 'items-start' : 'items-end'}`}
-                >
-                  {/* Sender Header */}
-                  <div className="flex items-center gap-2 mb-1.5 px-1">
-                    <span className="text-[10px] font-mono uppercase tracking-wider" style={{ color: isSage ? 'var(--brass-primary)' : 'var(--text-muted)' }}>
-                      {isSage ? 'GREAT SAGE ARCHIVIST' : 'YOU (CHRONICLER)'}
-                    </span>
-                    <span className="text-[10px] font-mono tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-
-                  {/* Bubble Container */}
-                  <div
-                    className="p-4 rounded-lg text-sm font-body leading-relaxed max-w-xl transition-colors"
-                    style={
-                      isSage ? {
-                        backgroundColor: 'var(--bg-elevated)',
-                        borderLeft: '3px solid var(--brass-primary)',
-                        borderTop: '1px solid var(--border-subtle)',
-                        borderRight: '1px solid var(--border-subtle)',
-                        borderBottom: '1px solid var(--border-subtle)',
-                        color: 'var(--text-primary)'
-                      } : {
-                        backgroundColor: 'var(--bg-canvas)',
-                        border: '1px solid var(--border-brass)',
-                        color: 'var(--text-primary)',
-                        borderRight: '3px solid var(--accent-primary)'
-                      }
-                    }
-                  >
-                    <p className="whitespace-pre-wrap">{message.text}</p>
-
-                    {/* Interactive Sage Suggestions Chips if provided */}
-                    {isSage && message.suggestions && message.suggestions.length > 0 && (
-                      <div className="mt-4 pt-3 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
-                        <div className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--brass-primary)' }}>
-                          RECOMMENDED DIRECTIVES
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {message.suggestions.map((sug, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => handleSendMessage(sug)}
-                              className="text-left text-xs font-mono px-2.5 py-1 rounded border cursor-pointer transition-colors"
-                              style={{
-                                backgroundColor: 'var(--bg-canvas)',
-                                borderColor: 'var(--border-subtle)',
-                                color: 'var(--text-secondary)'
-                              }}
-                            >
-                              ↳ {sug}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Tactical Indeterminate Scanline Loader (Purging Slop Item #7: Bouncing Dots) */}
-            {isLoading && (
-              <div className="flex flex-col items-start space-y-2 max-w-md">
-                <div className="flex items-center gap-2 px-1">
-                  <span className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--brass-primary)' }}>
-                    GREAT SAGE COGNITION IN PROGRESS
-                  </span>
-                </div>
-                <div
-                  className="p-4 rounded-lg border w-full space-y-3"
-                  style={{
+                  className="p-3.5 rounded-md text-sm font-body leading-relaxed max-w-xl"
+                  style={isPlanner ? {
                     backgroundColor: 'var(--bg-elevated)',
-                    borderColor: 'var(--border-subtle)',
-                    borderLeft: '3px solid var(--border-brass)'
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)'
+                  } : {
+                    backgroundColor: 'var(--accent-muted)',
+                    border: '1px solid var(--border-accent)',
+                    color: 'var(--text-primary)'
                   }}
                 >
-                  <div className="sage-scanline w-full">
-                    <div className="sage-scanline-bar" />
-                  </div>
-                  <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-                    Consulting Guild Ledger & synthesizing tactical recommendations...
-                  </p>
+                  <p className="whitespace-pre-wrap">{message.text}</p>
+
+                  {/* Blueprint card — the actual deliverable of this screen */}
+                  {message.blueprint && (
+                    <div
+                      className="mt-3.5 rounded-md border overflow-hidden"
+                      style={{ backgroundColor: 'var(--bg-canvas)', borderColor: 'var(--border-strong)' }}
+                    >
+                      <div className="p-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`stamp-${message.blueprint.difficulty}`}>
+                            {message.blueprint.difficulty}
+                          </span>
+                          <span className="chip-label">{message.blueprint.xp_value} XP</span>
+                          <span className="chip-label">{message.blueprint.estimated_duration} MIN</span>
+                        </div>
+                        <div className="font-display font-semibold text-xs" style={{ color: 'var(--text-primary)' }}>
+                          {message.blueprint.title}
+                        </div>
+                      </div>
+
+                      <ol className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
+                        {message.blueprint.steps.map((step, idx) => (
+                          <li key={idx} className="flex items-start gap-2.5 p-2.5">
+                            <span
+                              className="font-mono text-[10px] w-4 flex-shrink-0 mt-0.5 tabular-nums"
+                              style={{ color: 'var(--text-muted)' }}
+                            >
+                              {idx + 1}
+                            </span>
+                            <span className="flex-1 text-xs font-body" style={{ color: 'var(--text-primary)' }}>
+                              {step.title}
+                            </span>
+                            {step.estimated_duration > 0 && (
+                              <span className="font-mono text-[10px] flex-shrink-0 tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                                {step.estimated_duration}m
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ol>
+
+                      <div className="p-2.5 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+                        <button
+                          onClick={() => saveBlueprint(message.id, message.blueprint!)}
+                          disabled={message.saved || savingId === message.id}
+                          className={message.saved ? 'btn-secondary w-full flex items-center justify-center gap-2 text-xs' : 'btn-primary w-full flex items-center justify-center gap-2 text-xs'}
+                        >
+                          {message.saved ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" style={{ color: 'var(--status-success)' }} />
+                              <span>Saved to your goals</span>
+                            </>
+                          ) : savingId === message.id ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Saving…</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Save as goal</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {isPlanner && !message.blueprint && message.suggestions && message.suggestions.length > 0 && (
+                    <div className="mt-3.5 pt-3 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
+                      <span className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                        Try next
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {message.suggestions.map((sug, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => send(sug)}
+                            className="text-left text-xs font-body px-2.5 py-1 rounded border cursor-pointer transition-colors"
+                            style={{ backgroundColor: 'var(--bg-canvas)', borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}
+                          >
+                            {sug}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            );
+          })}
 
-            <div ref={messagesEndRef} />
-          </div>
+          {isLoading && (
+            <div className="flex flex-col items-start gap-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider px-1" style={{ color: 'var(--text-muted)' }}>
+                Planning…
+              </span>
+              <div
+                className="p-3.5 rounded-md border w-full max-w-md space-y-2.5"
+                style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
+              >
+                <div className="chronicle-skeleton h-3 w-40" />
+                <div className="chronicle-skeleton h-3 w-full" />
+                <div className="chronicle-skeleton h-3 w-3/4" />
+              </div>
+            </div>
+          )}
+
+          <div ref={endRef} />
         </section>
 
-        {/* Tactical Quick Directives Bar (Purging Slop #9 - 4-Card Marketing Grid) */}
-        <section className="mb-4">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-mono scrollbar-none">
-            <span className="text-[10px] uppercase tracking-wider flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
-              QUICK PROMPTS:
-            </span>
-            {quickDirectives.map((qd, index) => (
+        <section className="mb-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {quickPrompts.map((qp, idx) => (
               <button
-                key={index}
-                onClick={() => handleSendMessage(qd.query)}
-                className="px-2.5 py-1 rounded border flex-shrink-0 cursor-pointer transition-colors hover:border-brass text-left"
-                style={{
-                  backgroundColor: 'var(--bg-surface)',
-                  borderColor: 'var(--border-subtle)',
-                  color: 'var(--text-secondary)'
-                }}
+                key={idx}
+                onClick={() => send(qp.query)}
+                disabled={isLoading}
+                className="px-2.5 py-1 rounded-md border text-xs font-body flex-shrink-0 cursor-pointer transition-colors"
+                style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}
               >
-                {qd.label}
+                {qp.label}
               </button>
             ))}
           </div>
         </section>
 
-        {/* Input Control Area */}
         <section>
           <div
-            className="p-3 rounded-lg border"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--shadow-sm)'
-            }}
+            className="p-2.5 rounded-lg border"
+            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
           >
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <textarea
-                  ref={textareaRef}
-                  rows={2}
-                  className="input-field w-full font-body resize-none"
-                  placeholder="Consult the Great Sage or dictate campaign milestones... [Enter to dispatch]"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={isLoading}
-                />
-              </div>
-
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <textarea
+                rows={2}
+                className="input-field flex-1 resize-none"
+                placeholder="Describe the goal you're stuck on… (Enter to send, Shift+Enter for a new line)"
+                aria-label="Describe your goal"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading}
+              />
               <button
-                onClick={() => handleSendMessage()}
-                disabled={!inputMessage.trim() || isLoading}
-                className="btn-primary flex items-center justify-center gap-2 sm:self-stretch px-5 flex-shrink-0"
+                onClick={() => send()}
+                disabled={!input.trim() || isLoading}
+                className="btn-primary flex items-center justify-center gap-2 px-5 flex-shrink-0"
               >
                 <Send className="w-4 h-4" />
-                <span className="font-display tracking-wider uppercase text-xs">Dispatch</span>
+                <span>Send</span>
               </button>
-            </div>
-
-            <div className="flex items-center justify-between text-[10px] font-mono mt-2 px-1" style={{ color: 'var(--text-muted)' }}>
-              <span>TACTICAL ADVISOR ENGINE V2.4</span>
-              <span>[SHIFT + ENTER FOR NEWLINE]</span>
             </div>
           </div>
         </section>

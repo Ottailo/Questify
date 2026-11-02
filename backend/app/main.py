@@ -1,5 +1,5 @@
 """
-QuestSage v3.0 - Great Sage AI-Powered Quest Management System
+QuestSage v3.0 - Momentum Engine goal management API
 Main FastAPI application entry point.
 """
 
@@ -19,10 +19,10 @@ from app.api.v1.api import api_router
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
-    print("[QuestSage] Starting Great Sage AI System...")
+    print("[QuestSage] Starting Momentum Engine API...")
     await init_db()
     print("[QuestSage] Database initialized")
-    print("[QuestSage] Great Sage AI Engine ready")
+    print("[QuestSage] Momentum Engine ready")
     yield
     # Shutdown
     print("[QuestSage] Shutting down QuestSage...")
@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="QuestSage - Great Sage AI",
+    title="QuestSage - Momentum Engine",
     description="The world's most intelligent personal achievement companion",
     version="3.0.0",
     lifespan=lifespan,
@@ -56,10 +56,10 @@ app.include_router(api_router, prefix="/api/v1")
 async def root():
     """Root endpoint."""
     return {
-        "message": "Welcome to QuestSage - Great Sage AI",
+        "message": "Welcome to the QuestSage API",
         "version": "3.0.0",
         "status": "operational",
-        "ai_engine": "Great Sage NLU Engine v1.0"
+        "ai_engine": "Momentum Engine v1.0"
     }
 
 

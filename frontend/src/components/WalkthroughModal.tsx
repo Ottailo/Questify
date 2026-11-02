@@ -23,62 +23,62 @@ interface WalkthroughStep {
 const STEPS: WalkthroughStep[] = [
   {
     id: 1,
-    badge: 'PROTOCOL 01 // SECURITY',
-    title: 'Cryptographic Auth & Persistent Sessions',
-    description: 'Every vanguard account is secured with 12-round Bcrypt password hashing and signed PyJWT tokens. State seamlessly persists across SQLite and PostgreSQL dual engines.',
+    badge: 'STEP 01 // SECURITY',
+    title: 'Secure Sign-In & Sessions',
+    description: 'Your account is protected with industry-standard password hashing and signed session tokens. Your data stays safe across devices.',
     icon: ShieldCheck,
     highlights: [
-      'Bcrypt 12-round password hashing with zero plain-text leaks',
-      'Cryptographic JWT sessions automatically verified in the browser',
-      'Dual-dialect schema architecture supporting local SQLite and cloud PostgreSQL'
+      'Passwords hashed with Bcrypt (12 rounds) — never stored in plain text',
+      'Secure JWT sessions persist automatically in your browser',
+      'Works with both local and cloud database backends'
     ]
   },
   {
     id: 2,
-    badge: 'PROTOCOL 02 // COGNITION',
-    title: 'Great Sage AI NLU Copilot',
-    description: 'Deconstruct complex ambitions into structured, weighted quest blueprints. Great Sage communicates directly through your local OmniRoute LLM gateway at zero marginal cost.',
+    badge: 'STEP 02 // AI ASSISTANT',
+    title: 'AI-Powered Goal Planning',
+    description: 'Describe what you want to achieve and QuestSage breaks it down into structured, actionable steps with estimated timelines and effort levels.',
     icon: Brain,
     highlights: [
-      'Local OmniRoute gateway integration (port 20129) at $0 operational cost',
-      'Automatic cognitive breakdown: subtasks, XP values, and estimated duration',
-      'One-click "Inscribe Quest" to immediately record blueprints to your active ledger'
+      'Powered by a local AI gateway at zero ongoing cost',
+      'Automatically generates subtasks, XP values, and time estimates',
+      'One click to save a generated plan as an active goal'
     ]
   },
   {
     id: 3,
-    badge: 'PROTOCOL 03 // EXECUTION',
-    title: 'Tactical Quest & Milestone Ledger',
-    description: 'Execute daily sprints and long-term campaigns. Each quest features weighted subtasks with optimistic live checking, real-time database synchronization, and level progress calculations.',
+    badge: 'STEP 03 // EXECUTION',
+    title: 'Goal & Milestone Tracking',
+    description: 'Work through daily tasks and long-term goals. Each goal has weighted subtasks with real-time progress tracking and completion rewards.',
     icon: CheckSquare,
     highlights: [
-      'Tactile subtask strikes persist database state with zero reload lag',
-      'Visual progress rails indicate exact percentage of completed milestones',
-      'One-click "Claim Victory" to bank earned XP directly to your player level'
+      'Check off subtasks with instant progress updates',
+      'Visual progress bars show exactly where you stand',
+      'Complete a goal to earn XP and level up'
     ]
   },
   {
     id: 4,
-    badge: 'PROTOCOL 04 // CALIBRATION',
-    title: 'Cognitive Focus & Fatigue Calibration',
-    description: 'QuestSage calibrates to your real-time mental energy. Tune sprint duration between 15 and 90 minutes, configure focus alerts, and prevent burnout through intelligent pacing.',
+    badge: 'STEP 04 // CALIBRATION',
+    title: 'Focus & Energy Calibration',
+    description: 'QuestSage adapts to your energy level. Set your session length between 15 and 90 minutes and get tasks sized to match your current focus.',
     icon: Sliders,
     highlights: [
-      'Three operational states: Low Energy (20m), Moderate (45m), High Flow (90m)',
-      'Prevents burnout through intelligent pacing adjustments and break alerts',
-      'Consecutive streak tracking to reinforce daily operational momentum'
+      'Three energy modes: Low (20 min), Moderate (45 min), High Flow (90 min)',
+      'Smart pacing to prevent burnout with break reminders',
+      'Daily streak tracking to build consistent momentum'
     ]
   },
   {
     id: 5,
-    badge: 'PROTOCOL 05 // MASTERY',
-    title: 'Developer Stats & Achievements',
-    description: 'Track your growth from Level 1 to Level 10+ Vanguard. Unlock achievement badges, inspect productivity analytics, and audit your complete historical quest log.',
+    badge: 'STEP 05 // PROGRESS',
+    title: 'Stats & Achievements',
+    description: 'Track your growth from Level 1 onward. Earn achievement badges, review your productivity stats, and see your complete activity history.',
     icon: Trophy,
     highlights: [
-      'Tiered badge unlocks based on completed quests and consistency streaks',
-      'Detailed analytics: total quests, completion rate, and accumulated XP points',
-      'Clean developer profile with customizable focus notifications'
+      'Unlock badges based on goals completed and streak consistency',
+      'Dashboard with total goals, completion rate, and XP earned',
+      'Profile page with customizable notification preferences'
     ]
   }
 ];
@@ -152,7 +152,7 @@ export const WalkthroughModal: React.FC<WalkthroughModalProps> = ({ isOpen, onCl
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm"
               style={{
-                background: 'var(--gradient-indigo)',
+                background: 'var(--accent-primary)',
                 color: '#FFFFFF'
               }}
             >
@@ -160,7 +160,7 @@ export const WalkthroughModal: React.FC<WalkthroughModalProps> = ({ isOpen, onCl
             </div>
             <div>
               <h2 className="text-sm font-bold text-[var(--text-primary)] font-display">
-                QuestSage Field Guide & Architectural Protocols
+                Getting Started with QuestSage
               </h2>
             </div>
           </div>
@@ -193,7 +193,7 @@ export const WalkthroughModal: React.FC<WalkthroughModalProps> = ({ isOpen, onCl
         {/* Content */}
         <div className="p-6 space-y-5">
           <div className="flex items-center justify-between">
-            <span className="badge-pill badge-indigo">
+            <span className="chip-label">
               {step.badge}
             </span>
             <span className="font-mono text-xs text-[var(--text-muted)] font-semibold">
@@ -224,7 +224,7 @@ export const WalkthroughModal: React.FC<WalkthroughModalProps> = ({ isOpen, onCl
             }}
           >
             <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] font-bold block">
-              Architectural Invariants
+              Key Features
             </span>
             <div className="space-y-2">
               {step.highlights.map((h, i) => (
@@ -255,11 +255,11 @@ export const WalkthroughModal: React.FC<WalkthroughModalProps> = ({ isOpen, onCl
                 className="checkbox-tactile"
               />
               <span className={`text-xs font-semibold ${completedSteps.includes(step.id) ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
-                Mark protocol inspected & verified
+                Got it
               </span>
             </div>
             <span className="text-[10px] font-mono text-[var(--text-muted)] font-bold">
-              {completedSteps.includes(step.id) ? 'Verified ✓' : 'Click to verify'}
+              {completedSteps.includes(step.id) ? 'Done ✓' : 'Mark as read'}
             </span>
           </button>
         </div>
@@ -298,7 +298,7 @@ export const WalkthroughModal: React.FC<WalkthroughModalProps> = ({ isOpen, onCl
               onClick={handleFinish}
               className="btn-base btn-primary text-xs py-2 px-4 flex items-center gap-1.5"
             >
-              <span>Launch Workspace</span>
+              <span>Get Started</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           ) : (

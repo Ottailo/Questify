@@ -1,5 +1,8 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { questsageAPI } from '../services/api';
+import Navigation from './Navigation';
 
 // Tactical Theme Context
 const ThemeContext = createContext<{
@@ -24,7 +27,7 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     }
   };
 
-  // Default to dark mode ("Forest Ink") as dictated by DESIGN.md
+  // Initialize theme from localStorage or default to dark
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem('questsage-theme') as 'light' | 'dark' | null;
@@ -47,14 +50,25 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 };
 
 const LayoutContent: React.FC = () => {
+  const { data: user } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: () => questsageAPI.getUserProfile(),
+    staleTime: 30000,
+  });
+
   return (
     <div
-      className="min-h-screen min-h-[100dvh] flex flex-col font-body selection:bg-amber-900 selection:text-amber-100"
+      className="min-h-screen min-h-[100dvh] flex flex-col font-body"
       style={{
         backgroundColor: 'var(--bg-canvas)',
         color: 'var(--text-primary)'
       }}
     >
+      <Navigation
+        username={user?.username || user?.first_name || 'QuestSage User'}
+        level={user?.level || 1}
+        xp={user?.xp || 0}
+      />
       <Outlet />
     </div>
   );

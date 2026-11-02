@@ -54,7 +54,7 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="A Chronicler with this email or username is already inscribed in the ledger."
+                detail="An account with this email or username already exists."
             )
         
         # Hash password securely with bcrypt
@@ -111,7 +111,7 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error registering user into the Guild Ledger."
+            detail="Could not create your account. Please try again."
         )
 
 

@@ -3,29 +3,28 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
   Target,
-  Trophy,
+  Zap,
   Flame,
   Plus,
   TrendingUp,
   Clock,
-  Compass,
   ArrowRight,
-  Sparkles,
   AlertCircle,
   RefreshCw,
-  BookOpen,
-  CheckCircle2
+  ListChecks,
+  CheckCircle2,
+  Gauge
 } from 'lucide-react';
 import { questsageAPI } from '../services/api';
-import Navigation from '../components/Navigation';
+
+const LEVEL_XP = 500;
 
 const Dashboard: React.FC = () => {
-  const [quickMessage, setQuickMessage] = useState('');
+  const [quickGoal, setQuickGoal] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ tone: 'ok' | 'warn'; text: string } | null>(null);
   const navigate = useNavigate();
 
-  // Real API calls for user stats & recent quests
   const {
     data: userStats,
     isLoading: statsLoading,
@@ -45,110 +44,101 @@ const Dashboard: React.FC = () => {
     queryFn: () => questsageAPI.getRecentQuests(),
   });
 
-  const handleQuickQuest = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!quickMessage.trim() || isSubmitting) return;
+  const flash = (tone: 'ok' | 'warn', text: string) => {
+    setFeedback({ tone, text });
+    window.setTimeout(() => setFeedback(null), 4000);
+  };
+
+  const handleQuickGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickGoal.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      // Inscribe new directive via Great Sage Quest Generation API
       await questsageAPI.createQuest(1, {
-        title: quickMessage.trim(),
-        description: 'Command HUD quick inscription directive logged to active roster.',
+        title: quickGoal.trim(),
+        description: 'Added from the dashboard quick entry.',
         difficulty: 'normal',
         xp_value: 150,
         estimated_duration: 30,
         subtasks: [
-          { text: 'Analyze campaign parameters', completed: false, weight: 30 },
-          { text: 'Execute core operational milestone', completed: false, weight: 40 },
-          { text: 'Verify objective resolution & ledger', completed: false, weight: 30 }
+          { text: 'Define what done looks like', completed: false, weight: 30 },
+          { text: 'Do the core work', completed: false, weight: 40 },
+          { text: 'Verify and close out', completed: false, weight: 30 }
         ]
       });
-      setQuickMessage('');
-      setFeedbackNotice('Campaign directive inscribed successfully into the Guild Ledger.');
-      setTimeout(() => setFeedbackNotice(null), 4000);
+      setQuickGoal('');
+      flash('ok', 'Goal added and split into three weighted steps.');
       refetchQuests();
       refetchStats();
     } catch (error) {
-      console.error('Error generating quest:', error);
-      setFeedbackNotice('Directive recorded locally. Forwarding to Guild Scribe for verification.');
-      setTimeout(() => setFeedbackNotice(null), 4000);
+      console.error('Error creating goal:', error);
+      flash('warn', 'Could not reach the server. Your goal was not saved.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleContinueQuest = (questId: number) => {
-    navigate('/quests');
-  };
+  const level = userStats?.level ?? 5;
+  const xp = userStats?.xp ?? 1250;
+  const xpIntoLevel = Math.max(0, xp - (level - 1) * LEVEL_XP);
 
-  // Telemetry items with canonical token hierarchy
-  const telemetryStats = [
+  const stats = [
     {
-      label: 'ACTIVE CAMPAIGNS',
-      value: userStats?.active_quests ?? (questsLoading ? '...' : 3),
+      label: 'ACTIVE GOALS',
+      value: userStats?.active_quests ?? (questsLoading ? '—' : 0),
+      helper: 'currently in flight',
       icon: Target,
-      accentColor: 'var(--brass-primary)',
-      delta: '+2 this rotation'
+      color: 'var(--amber-primary)'
     },
     {
-      label: 'ACCUMULATED XP',
-      value: userStats?.xp ? userStats.xp.toLocaleString() : '1,250',
-      icon: Trophy,
-      accentColor: 'var(--accent-primary)',
-      delta: '+150 today'
+      label: 'TOTAL XP',
+      value: xp.toLocaleString(),
+      helper: `${xpIntoLevel} into level ${level}`,
+      icon: Zap,
+      color: 'var(--accent-primary)'
     },
     {
-      label: 'RESOLUTION RATE',
-      value: `${userStats?.completion_rate ?? 84}%`,
+      label: 'COMPLETION RATE',
+      value: `${Math.round(userStats?.completion_rate ?? 0)}%`,
+      helper: `${userStats?.completed_quests ?? 0} finished`,
       icon: TrendingUp,
-      accentColor: 'var(--status-success)',
-      delta: '+4.2% cadence'
+      color: 'var(--status-success)'
     },
     {
-      label: 'DISCIPLINE STREAK',
-      value: `${userStats?.streak_days ?? 7} DAYS`,
+      label: 'DAY STREAK',
+      value: `${userStats?.streak_days ?? 0}`,
+      helper: 'consecutive active days',
       icon: Flame,
-      accentColor: 'var(--accent-primary)',
-      delta: 'Active Vanguard'
+      color: 'var(--accent-primary)'
     }
   ];
 
-  // 1. Loading State: Structural wireframe skeletons (Zero pulsating animation loops)
   if (statsLoading && questsLoading) {
     return (
       <div className="min-h-screen min-h-[100dvh]" style={{ backgroundColor: 'var(--bg-canvas)' }}>
-        <Navigation username="Great Sage User" level={5} xp={1250} />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 safe-bottom">
-          {/* Skeleton Hero */}
-          <div className="rounded-lg p-6 sm:p-8 mb-8 border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-            <div className="chronicle-skeleton h-6 w-48 mb-3" />
-            <div className="chronicle-skeleton h-4 w-96 mb-6" />
-            <div className="chronicle-skeleton h-12 w-full max-w-2xl" />
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 safe-bottom">
+          <div className="rounded-lg p-6 mb-6 border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+            <div className="chronicle-skeleton h-6 w-52 mb-3" />
+            <div className="chronicle-skeleton h-4 w-80 mb-6" />
+            <div className="chronicle-skeleton h-11 w-full" />
           </div>
-
-          {/* Skeleton Telemetry */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="p-4 rounded-lg border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-                <div className="chronicle-skeleton h-3 w-24 mb-2" />
-                <div className="chronicle-skeleton h-8 w-16 mb-2" />
-                <div className="chronicle-skeleton h-3 w-28" />
+                <div className="chronicle-skeleton h-3 w-20 mb-3" />
+                <div className="chronicle-skeleton h-7 w-16 mb-2" />
+                <div className="chronicle-skeleton h-3 w-24" />
               </div>
             ))}
           </div>
-
-          {/* Skeleton Quests */}
-          <div className="space-y-4">
-            <div className="chronicle-skeleton h-5 w-40 mb-4" />
-            {[1, 2].map((i) => (
-              <div key={i} className="p-6 rounded-lg border" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-                <div className="chronicle-skeleton h-5 w-64 mb-3" />
-                <div className="chronicle-skeleton h-3 w-full max-w-lg mb-4" />
-                <div className="chronicle-skeleton h-2 w-full mb-3" />
-              </div>
-            ))}
-          </div>
+          {[1, 2].map((i) => (
+            <div key={i} className="p-5 rounded-lg border mb-3" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+              <div className="chronicle-skeleton h-5 w-64 mb-3" />
+              <div className="chronicle-skeleton h-3 w-full max-w-lg mb-4" />
+              <div className="chronicle-skeleton h-1.5 w-full" />
+            </div>
+          ))}
         </main>
       </div>
     );
@@ -156,145 +146,109 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen min-h-[100dvh]" style={{ backgroundColor: 'var(--bg-canvas)' }}>
-      <Navigation
-        username="Great Sage User"
-        level={userStats?.level || 5}
-        xp={userStats?.xp || 1250}
-      />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 safe-bottom">
-        {/* Feedback Alert if present */}
-        {feedbackNotice && (
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 safe-bottom">
+        {feedback && (
           <div
-            className="mb-6 p-4 rounded border flex items-center justify-between text-xs font-mono"
+            role="status"
+            className="mb-5 p-3 rounded-md border flex items-center justify-between text-xs font-mono"
             style={{
               backgroundColor: 'var(--bg-elevated)',
-              borderColor: 'var(--border-brass)',
-              color: 'var(--brass-primary)'
+              borderColor: feedback.tone === 'ok' ? 'var(--border-strong)' : 'var(--status-danger)',
+              color: feedback.tone === 'ok' ? 'var(--text-secondary)' : 'var(--status-danger)'
             }}
           >
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              <span>{feedbackNotice}</span>
-            </div>
+            <span className="flex items-center gap-2">
+              {feedback.tone === 'ok'
+                ? <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--status-success)' }} />
+                : <AlertCircle className="w-3.5 h-3.5" />}
+              <span>{feedback.text}</span>
+            </span>
             <button
-              onClick={() => setFeedbackNotice(null)}
-              className="text-[10px] uppercase tracking-wider text-muted hover:text-primary cursor-pointer border-0 bg-transparent"
+              onClick={() => setFeedback(null)}
+              className="border-0 bg-transparent cursor-pointer text-[10px] uppercase tracking-wider"
+              style={{ color: 'var(--text-muted)' }}
             >
               Dismiss
             </button>
           </div>
         )}
 
-        {/* Tactical Command HUD Hero Section */}
-        <section className="mb-8">
+        {/* Header + quick capture */}
+        <section className="mb-6">
           <div
-            className="rounded-lg p-6 sm:p-8 border relative overflow-hidden"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--shadow-sm)'
-            }}
+            className="rounded-lg border p-5 sm:p-7 relative overflow-hidden"
+            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', boxShadow: 'var(--shadow-sm)' }}
           >
-            {/* Top Accent Strip */}
-            <div
-              className="absolute top-0 left-0 right-0 h-1"
-              style={{ background: 'linear-gradient(90deg, var(--brass-primary) 0%, var(--accent-primary) 50%, var(--border-subtle) 100%)' }}
-            />
-
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="chronicle-stamp">
-                    TACTICAL HUD // CAMPAIGN ROTATION
-                  </span>
-                  <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
-                    ARCHIVE RECORD #0482
-                  </span>
-                </div>
-                <h1 className="font-display font-bold text-2xl sm:text-3xl tracking-wide uppercase" style={{ color: 'var(--text-primary)' }}>
-                  COMMAND DISPATCH & LEDGER
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5">
+              <div>
+                <span className="chip-label mb-2">TODAY</span>
+                <h1 className="font-display font-bold text-xl sm:text-2xl tracking-tight mt-2" style={{ color: 'var(--text-primary)' }}>
+                  Momentum Dashboard
                 </h1>
-                <p className="text-sm font-body max-w-2xl" style={{ color: 'var(--text-secondary)' }}>
-                  Great Sage telemetry operational. Track active quest milestones, balance mental load, and advance through the Guild Vanguard.
+                <p className="text-sm font-body mt-1" style={{ color: 'var(--text-secondary)' }}>
+                  {stats[0].value !== '—' && Number(stats[0].value) > 0
+                    ? `${stats[0].value} goal${Number(stats[0].value) === 1 ? '' : 's'} in flight. Pick one and move it forward.`
+                    : 'Nothing in flight yet. Capture your first goal below.'}
                 </p>
               </div>
 
-              {/* Status Badge */}
               <div
-                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded self-start lg:self-center border"
-                style={{
-                  backgroundColor: 'var(--bg-canvas)',
-                  borderColor: 'var(--border-brass)',
-                  color: 'var(--brass-primary)'
-                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-md border self-start sm:self-auto"
+                style={{ backgroundColor: 'var(--bg-canvas)', borderColor: 'var(--border-strong)' }}
               >
-                <Compass className="w-4 h-4" />
-                <span className="font-mono text-xs uppercase tracking-wider">CHRONICLER ONLINE</span>
+                <Gauge className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+                <span className="font-mono text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                  LEVEL {level} · {xpIntoLevel}/{LEVEL_XP} XP
+                </span>
               </div>
             </div>
 
-            {/* Quick Directive Inscription Form */}
-            <form onSubmit={handleQuickQuest} className="w-full">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    className="input-field w-full font-body"
-                    placeholder="Inscribe a new objective, milestone, or campaign directive..."
-                    value={quickMessage}
-                    onChange={(e) => setQuickMessage(e.target.value)}
-                    disabled={isSubmitting}
-                  />
-                  <span
-                    className="hidden sm:inline-block absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono tracking-widest uppercase pointer-events-none"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    [ENTER]
-                  </span>
-                </div>
+            <form onSubmit={handleQuickGoal}>
+              <div className="flex flex-col sm:flex-row gap-2.5">
+                <input
+                  type="text"
+                  className="input-field flex-1"
+                  placeholder="What do you want to get done?"
+                  aria-label="Add a goal"
+                  value={quickGoal}
+                  onChange={(e) => setQuickGoal(e.target.value)}
+                  disabled={isSubmitting}
+                />
                 <button
                   type="submit"
-                  disabled={!quickMessage.trim() || isSubmitting}
+                  disabled={!quickGoal.trim() || isSubmitting}
                   className="btn-primary flex items-center justify-center gap-2 flex-shrink-0"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>{isSubmitting ? 'Inscribing...' : 'Inscribe Directive'}</span>
+                  <span>{isSubmitting ? 'Adding…' : 'Add goal'}</span>
                 </button>
               </div>
             </form>
           </div>
         </section>
 
-        {/* 4-Metric Horizontal Telemetry Bar */}
-        <section className="mb-10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {telemetryStats.map((stat, index) => {
+        {/* Telemetry */}
+        <section className="mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {stats.map((stat) => {
               const Icon = stat.icon;
               return (
                 <div
-                  key={index}
-                  className="p-4 sm:p-5 rounded-lg border transition-colors flex flex-col justify-between"
-                  style={{
-                    backgroundColor: 'var(--bg-surface)',
-                    borderColor: 'var(--border-subtle)',
-                    boxShadow: 'var(--shadow-xs)'
-                  }}
+                  key={stat.label}
+                  className="p-4 rounded-lg border"
+                  style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                       {stat.label}
                     </span>
-                    <Icon className="w-4 h-4" style={{ color: stat.accentColor }} />
+                    <Icon className="w-3.5 h-3.5" style={{ color: stat.color }} />
                   </div>
-                  <div
-                    className="font-mono text-2xl sm:text-3xl font-bold tracking-tight mb-1 tabular-nums"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
+                  <div className="font-mono text-2xl font-bold tabular-nums mb-1" style={{ color: 'var(--text-primary)' }}>
                     {stat.value}
                   </div>
-                  <div className="text-[11px] font-mono" style={{ color: 'var(--text-secondary)' }}>
-                    {stat.delta}
+                  <div className="text-[11px] font-body" style={{ color: 'var(--text-muted)' }}>
+                    {stat.helper}
                   </div>
                 </div>
               );
@@ -302,151 +256,121 @@ const Dashboard: React.FC = () => {
           </div>
         </section>
 
-        {/* Active Campaigns Dossier Section */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2.5">
-              <BookOpen className="w-4 h-4" style={{ color: 'var(--brass-primary)' }} />
-              <h2 className="font-display font-bold text-lg sm:text-xl tracking-wide uppercase" style={{ color: 'var(--text-primary)' }}>
-                ACTIVE CAMPAIGN DOSSIERS
-              </h2>
-            </div>
+        {/* Active goals */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-semibold text-sm tracking-tight" style={{ color: 'var(--text-primary)' }}>
+              Active goals
+            </h2>
             <button
               onClick={() => navigate('/quests')}
-              className="btn-ghost flex items-center gap-1.5 text-xs font-display uppercase tracking-wider"
+              className="btn-ghost flex items-center gap-1.5 text-xs"
             >
-              <span>Inspect All Records</span>
+              <span>View all</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* 5-State Handling for Recent Quests */}
           {questsError ? (
-            /* Error State Docket */
             <div
-              className="p-8 rounded-lg border text-center space-y-4"
+              className="p-8 rounded-lg border text-center space-y-3"
               style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--status-danger)' }}
             >
-              <AlertCircle className="w-8 h-8 mx-auto" style={{ color: 'var(--status-danger)' }} />
+              <AlertCircle className="w-7 h-7 mx-auto" style={{ color: 'var(--status-danger)' }} />
               <div>
-                <h3 className="font-display font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
-                  Ledger Synchronization Interrupted
+                <h3 className="font-display font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                  Could not load your goals
                 </h3>
-                <p className="text-xs font-mono mt-1" style={{ color: 'var(--text-secondary)' }}>
-                  Failed to retrieve active quest records from the local archive index.
+                <p className="text-xs font-body mt-1" style={{ color: 'var(--text-secondary)' }}>
+                  The server did not respond. Nothing was lost.
                 </p>
               </div>
-              <button
-                onClick={() => refetchQuests()}
-                className="btn-secondary inline-flex items-center gap-2 text-xs"
-              >
+              <button onClick={() => refetchQuests()} className="btn-secondary inline-flex items-center gap-2 text-xs">
                 <RefreshCw className="w-3.5 h-3.5" />
-                <span>Retry Transmission</span>
+                <span>Try again</span>
               </button>
             </div>
           ) : recentQuests && recentQuests.length > 0 ? (
-            /* Populated State with The Chronicle Rail */
-            <div className="space-y-4">
+            <div className="space-y-3">
               {recentQuests.slice(0, 3).map((quest: any) => {
                 const subtasks = quest.subtasks || [];
-                const hasSubtasks = subtasks.length > 0;
-                const completedSubtasks = subtasks.filter((s: any) => s.completed).length;
+                const done = subtasks.filter((s: any) => s.completed).length;
+                const progress = quest.progress_percentage || 0;
 
                 return (
-                  <div
-                    key={quest.id}
-                    className="quest-card p-5 sm:p-6"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+                  <div key={quest.id} className="goal-card p-5">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
                       <div className="space-y-1.5 flex-1">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <span className={`stamp-${quest.difficulty || 'medium'}`}>
-                            {(quest.difficulty || 'NORMAL').toUpperCase()}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`stamp-${quest.difficulty || 'normal'}`}>
+                            {quest.difficulty || 'normal'}
                           </span>
-                          <span className="chronicle-stamp">
-                            STATUS: {(quest.status || 'IN_PROGRESS').replace('_', ' ').toUpperCase()}
+                          <span className="chip-label">
+                            {quest.status === 'completed' ? 'DONE' : quest.status === 'not_started' ? 'NOT STARTED' : 'IN FLIGHT'}
                           </span>
                         </div>
-
-                        <h3 className="font-display font-bold text-base sm:text-lg tracking-wide" style={{ color: 'var(--text-primary)' }}>
+                        <h3 className="font-display font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
                           {quest.title}
                         </h3>
-
-                        <p className="text-xs sm:text-sm font-body line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
-                          {quest.description}
-                        </p>
+                        {quest.description && (
+                          <p className="text-xs font-body line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
+                            {quest.description}
+                          </p>
+                        )}
                       </div>
 
-                      {/* Right Quick Action */}
                       <button
-                        onClick={() => handleContinueQuest(quest.id)}
-                        className="btn-secondary flex items-center justify-center gap-1.5 text-xs font-display tracking-wider flex-shrink-0 self-start"
+                        onClick={() => navigate('/quests')}
+                        className="btn-secondary flex items-center gap-1.5 text-xs flex-shrink-0 self-start"
                       >
-                        <span>Open Dossier</span>
+                        <span>Open</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
-                    {/* Signature Feature: The Chronicle Rail */}
-                    <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-                      <div className="flex items-center justify-between text-xs font-mono">
-                        <div className="flex items-center gap-2">
-                          <span style={{ color: 'var(--brass-primary)' }}>CHRONICLE RAIL</span>
-                          {hasSubtasks && (
-                            <span style={{ color: 'var(--text-muted)' }}>
-                              ({completedSubtasks}/{subtasks.length} subtasks completed)
-                            </span>
-                          )}
-                        </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[11px] font-mono">
+                        <span style={{ color: 'var(--text-muted)' }}>
+                          {subtasks.length > 0 ? `${done}/${subtasks.length} steps` : 'no steps yet'}
+                        </span>
                         <span className="tabular-nums font-semibold" style={{ color: 'var(--text-primary)' }}>
-                          {quest.progress_percentage || 0}% PROGRESSION
+                          {progress}%
                         </span>
                       </div>
 
-                      {/* Tactical Recessed Chronicle Rail */}
-                      <div className="chronicle-rail">
-                        {hasSubtasks ? (
-                          subtasks.map((subtask: any, idx: number) => {
-                            const segmentWidth = subtask.weight
-                              ? `${subtask.weight}%`
-                              : `${100 / subtasks.length}%`;
-                            return (
-                              <div
-                                key={subtask.id || idx}
-                                className={`chronicle-rail-segment ${subtask.completed ? 'completed' : ''}`}
-                                style={{ width: segmentWidth }}
-                                title={`${subtask.text || `Objective ${idx + 1}`}: ${subtask.completed ? 'Resolved' : 'Pending'}`}
-                              />
-                            );
-                          })
+                      <div
+                        className="momentum-rail"
+                        role="progressbar"
+                        aria-valuenow={progress}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`${quest.title} progress`}
+                      >
+                        {subtasks.length > 0 ? (
+                          subtasks.map((subtask: any, idx: number) => (
+                            <div
+                              key={subtask.id || idx}
+                              className={`momentum-segment ${subtask.completed ? 'completed' : ''}`}
+                              style={{ width: `${subtask.weight || 100 / subtasks.length}%` }}
+                              title={`${subtask.text} — ${subtask.completed ? 'done' : 'open'}`}
+                            />
+                          ))
                         ) : (
                           <>
-                            <div
-                              className="chronicle-rail-segment completed"
-                              style={{ width: `${quest.progress_percentage || 0}%` }}
-                            />
-                            <div
-                              className="chronicle-rail-segment"
-                              style={{ width: `${100 - (quest.progress_percentage || 0)}%` }}
-                            />
+                            <div className="momentum-segment completed" style={{ width: `${progress}%` }} />
+                            <div className="momentum-segment" style={{ width: `${100 - progress}%` }} />
                           </>
                         )}
                       </div>
 
-                      {/* Footer Telemetry Stamp */}
-                      <div className="flex items-center justify-between text-[11px] font-mono pt-1" style={{ color: 'var(--text-muted)' }}>
-                        <div className="flex items-center gap-3">
-                          <span className="flex items-center gap-1">
-                            <Sparkles className="w-3 h-3" style={{ color: 'var(--brass-primary)' }} />
-                            <span>+{quest.xp_value || 100} XP VALUE</span>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>{quest.estimated_duration || 30}M ESTIMATE</span>
-                          </span>
-                        </div>
-                        <span className="text-[10px] uppercase">
-                          REF ID #{quest.id.toString().padStart(4, '0')}
+                      <div className="flex items-center gap-4 text-[11px] font-mono pt-0.5" style={{ color: 'var(--text-muted)' }}>
+                        <span className="flex items-center gap-1">
+                          <Zap className="w-3 h-3" style={{ color: 'var(--amber-primary)' }} />
+                          <span>{quest.xp_value || 100} XP</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{quest.estimated_duration || 30} min</span>
                         </span>
                       </div>
                     </div>
@@ -455,64 +379,33 @@ const Dashboard: React.FC = () => {
               })}
             </div>
           ) : (
-            /* Empty State: Uninscribed Docket */
             <div
-              className="p-8 sm:p-12 rounded-lg border text-center space-y-4"
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-                boxShadow: 'var(--shadow-xs)'
-              }}
+              className="p-10 rounded-lg border text-center space-y-4"
+              style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
             >
               <div
-                className="w-12 h-12 rounded flex items-center justify-center mx-auto"
-                style={{
-                  backgroundColor: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-brass)',
-                  color: 'var(--brass-primary)'
-                }}
+                className="w-11 h-11 rounded-md flex items-center justify-center mx-auto"
+                style={{ backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
               >
-                <BookOpen className="w-6 h-6" />
+                <ListChecks className="w-5 h-5" />
               </div>
-              <div className="max-w-md mx-auto space-y-1.5">
-                <h3 className="font-display font-bold text-base tracking-wide uppercase" style={{ color: 'var(--text-primary)' }}>
-                  Uninscribed Chronicle Docket
+              <div className="max-w-sm mx-auto space-y-1">
+                <h3 className="font-display font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                  No goals yet
                 </h3>
                 <p className="text-xs font-body" style={{ color: 'var(--text-secondary)' }}>
-                  No active campaign dossiers are currently recorded in your active rotation. Inscribe a directive above or forge a comprehensive campaign in the Quest Forge.
+                  Add one above, or let the planner break a big one down for you.
                 </p>
               </div>
               <button
-                onClick={() => navigate('/quests')}
-                className="btn-primary inline-flex items-center gap-2 text-xs font-display tracking-wider uppercase"
+                onClick={() => navigate('/chat')}
+                className="btn-primary inline-flex items-center gap-2 text-xs"
               >
                 <Plus className="w-4 h-4" />
-                <span>Open Quest Forge</span>
+                <span>Break down a goal</span>
               </button>
             </div>
           )}
-        </section>
-
-        {/* Guild Chronicler Archival Dispatch (Purging Slop Item #4 - Disney Quote) */}
-        <section className="text-center">
-          <div
-            className="p-5 sm:p-6 rounded-lg border relative max-w-3xl mx-auto"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--border-subtle)',
-              boxShadow: 'var(--shadow-xs)'
-            }}
-          >
-            <div className="text-[10px] font-mono uppercase tracking-widest mb-2" style={{ color: 'var(--brass-primary)' }}>
-              CHRONICLER CODEX // CODICIL IV
-            </div>
-            <blockquote className="font-serif italic text-sm sm:text-base leading-relaxed mb-2" style={{ color: 'var(--text-primary)' }}>
-              "A discipline unrecorded is mastery surrendered to entropy. Inscribe the campaign, calibrate the load, and advance through the ledger with steady cadence."
-            </blockquote>
-            <cite className="block text-[11px] font-mono not-italic uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-              [Arch-Chronicler Vael, Grand Archive of the Guild]
-            </cite>
-          </div>
         </section>
       </main>
     </div>

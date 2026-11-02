@@ -1,91 +1,102 @@
 /* ==========================================================================
-   QUESTSAGE DESIGN SYSTEM: "The Guild Chronicler"
-   Tactical Fantasy RPG HUD meets Illuminated Quest Ledger
-   Surface Mode: OPERATE (Read Sanctuary for /chat) | Dials: V6 / M3 / D7
+   QUESTSAGE DESIGN SYSTEM — "THE MOMENTUM ENGINE"
+   A precision focus instrument. Deep slate ground, one Solar Ember signal,
+   tabular precision, and zero decorative ceremony.
+   Surface Mode: OPERATE (Read Sanctuary for /chat)
    ========================================================================== */
 
 /* ==========================================================================
-   1. DESIGN TOKENS (OKLCH Evergreen Forest-Ink & Hot Ember Orange)
+   1. DESIGN TOKENS — Slate Instrument Ground + Single Solar Ember Signal
    ========================================================================== */
 
 :root {
-  /* Canvas & Surface Hierarchy (OKLCH Tinted Evergreen Neutrals) */
-  --bg-canvas: #09130E;        /* Deep Forest Ink Ground */
-  --bg-surface: #0F1F17;       /* Dark Evergreen Ledger Surface */
-  --bg-elevated: #15291F;      /* Raised Quest Card */
-  --bg-subtle: #1B3327;        /* Inset Header & Slot Backing */
-  --bg-overlay: rgba(9, 19, 14, 0.92); /* Scrim */
-  --bg-glass: rgba(15, 31, 23, 0.85);  /* Frosted Header */
+  /* Canvas & Surface Hierarchy (cool-tinted slate, never pure gray) */
+  --bg-canvas: #0D1117;        /* Deep focus slate ground */
+  --bg-surface: #161B22;       /* Raised instrument panel */
+  --bg-elevated: #1C2128;      /* Hover / selected row */
+  --bg-subtle: #21262D;        /* Inset well, track backing */
+  --bg-overlay: rgba(13, 17, 23, 0.92);
+  --bg-glass: rgba(22, 27, 34, 0.88);
 
-  /* Hairlines & Forged Framing */
-  --border-subtle: rgba(200, 157, 60, 0.15); /* 1px structural separator */
-  --border-strong: rgba(200, 157, 60, 0.32); /* Card boundary */
-  --border-brass: rgba(200, 157, 60, 0.55);  /* Forged antique brass accent line */
-  --border-brass-solid: #C89D3C;             /* Solid brass milestone seal */
-  --border-focus: #D9531E;                   /* Ember Orange Focus */
+  /* Hairlines — structural, never decorative */
+  --border-subtle: rgba(240, 246, 252, 0.09);
+  --border-strong: rgba(240, 246, 252, 0.18);
+  --border-accent: rgba(249, 87, 33, 0.45);   /* Solar Ember boundary */
+  --border-accent-solid: #F95721;
+  --border-focus: #F95721;
 
   /* Typography Hierarchy */
-  --text-primary: #F5F2EA;      /* Illuminated Warm Vellum */
-  --text-secondary: #A8BDB1;    /* Sage Mist */
-  --text-muted: #6E8578;        /* Shadowed Moss */
-  --text-inverse: #09130E;      /* Deep Forest Ink on light chips */
+  --text-primary: #E6EDF3;      /* Primary read */
+  --text-secondary: #9BA7B4;    /* Supporting copy */
+  --text-muted: #6E7781;        /* Metadata, labels */
+  --text-inverse: #0D1117;
 
-  /* Single Locked Primary Accent (<80% Saturation) */
-  --accent-primary: #D9531E;     /* Hot Ember Orange */
-  --accent-hover: #BF4416;       /* Deepened Hearth */
-  --accent-muted: rgba(217, 83, 30, 0.16); /* Tinted ember badge background */
-  --accent-glow: rgba(217, 83, 30, 0.28);
-  --accent-foreground: #FFFFFF;  /* Button text */
+  /* Primary Signal: Solar Ember (locked, <80% saturation) */
+  --accent-primary: #F95721;
+  --accent-hover: #E04A18;
+  --accent-muted: rgba(249, 87, 33, 0.14);
+  --accent-glow: rgba(249, 87, 33, 0.26);
+  --accent-foreground: #FFFFFF;
 
-  /* Secondary Forged Guild Brass Accents */
-  --brass-primary: #C89D3C;      /* Forged Guild Brass */
-  --brass-hover: #B58B2E;        /* Aged Brass */
-  --brass-muted: rgba(200, 157, 60, 0.16); /* Brass badge backing */
-  --brass-glow: rgba(200, 157, 60, 0.25);
+  /* Secondary Signal: Momentum Amber (level, XP, streaks) */
+  --amber-primary: #F59E0B;
+  --amber-hover: #D97706;
+  --amber-muted: rgba(245, 158, 11, 0.14);
+  --amber-glow: rgba(245, 158, 11, 0.22);
 
-  /* Semantic State Tokens */
-  --status-success: #10B981;     /* Verdant Victory Emerald */
-  --status-success-muted: rgba(16, 185, 129, 0.16);
-  --status-warning: #F59E0B;     /* Solar Amber */
-  --status-warning-muted: rgba(245, 158, 11, 0.16);
-  --status-danger: #EF4444;      /* Crimson Hazard */
-  --status-danger-muted: rgba(239, 68, 68, 0.16);
-  --status-info: #38BDF8;        /* Scholar's Cyan */
-  --status-info-muted: rgba(56, 189, 248, 0.16);
+  /* Semantic State */
+  --status-success: #3FB950;    /* Resolved */
+  --status-success-muted: rgba(63, 185, 80, 0.14);
+  --status-warning: #D29922;    /* At risk */
+  --status-warning-muted: rgba(210, 153, 34, 0.14);
+  --status-danger: #F85149;     /* Blocked */
+  --status-danger-muted: rgba(248, 81, 73, 0.14);
+  --status-info: #58A6FF;       /* Reference */
+  --status-info-muted: rgba(88, 166, 255, 0.14);
 
-  /* Tactical Rarity Tiers */
-  --rarity-common: #8F9D96;      /* Weathered Iron */
-  --rarity-heroic: #C89D3C;      /* Forged Brass */
-  --rarity-epic: #8B5CF6;        /* Sage Amethyst */
-  --rarity-legendary: #D9531E;   /* Ember Flame */
+  /* Effort Tiers (maps to difficulty) */
+  --tier-light: #3FB950;
+  --tier-standard: #F59E0B;
+  --tier-demanding: #F95721;
 
   /* Typography Roles */
-  --font-display: 'Cinzel', Georgia, serif;
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', monospace;
 
   /* Layout, Radii & Depth */
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Optical Grounding Shadows (Zero neon glow) */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.65);
-  --shadow-brass: 0 0 16px rgba(200, 157, 60, 0.2);
-  --shadow-ember: 0 0 18px rgba(217, 83, 30, 0.25);
+  /* Optical grounding — no neon bloom */
+  --shadow-sm: 0 1px 2px rgba(1, 4, 9, 0.45);
+  --shadow-md: 0 4px 14px rgba(1, 4, 9, 0.5);
+  --shadow-lg: 0 12px 32px rgba(1, 4, 9, 0.6);
+  --shadow-accent: 0 0 0 1px rgba(249, 87, 33, 0.28);
+  --shadow-amber: 0 0 0 1px rgba(245, 158, 11, 0.24);
+  /* Aliases retained for legacy references */
+  --shadow-brass: var(--shadow-amber);
+  --shadow-ember: var(--shadow-accent);
 
-  /* Motion & Easing Curves */
+  /* Motion — sub-250ms, no bounce for productivity surfaces */
   --spring-snappy: cubic-bezier(0.16, 1, 0.3, 1);
-  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-bounce: cubic-bezier(0.34, 1.4, 0.64, 1);
   --duration-fast: 150ms;
-  --duration-normal: 240ms;
+  --duration-normal: 220ms;
 
-  /* Backward Compatibility Aliases */
+  /* ------------------------------------------------------------------
+     Backward-compatibility aliases (legacy brass/questify references)
+     ------------------------------------------------------------------ */
+  --brass-primary: var(--amber-primary);
+  --brass-hover: var(--amber-hover);
+  --brass-muted: var(--amber-muted);
+  --brass-glow: var(--amber-glow);
+  --border-brass: rgba(245, 158, 11, 0.42);
+  --border-brass-solid: var(--amber-primary);
   --questify-gray-50: var(--bg-canvas);
   --questify-gray-100: var(--bg-surface);
   --questify-gray-200: var(--border-subtle);
@@ -99,73 +110,79 @@
   --questify-sage: var(--status-success);
   --questify-sage-light: var(--status-success-muted);
   --questify-sage-dark: var(--status-success);
-  --questify-gold: var(--brass-primary);
-  --questify-gold-light: var(--brass-muted);
-  --questify-gold-dark: var(--brass-primary);
+  --questify-gold: var(--amber-primary);
+  --questify-gold-light: var(--amber-muted);
+  --questify-gold-dark: var(--amber-primary);
   --questify-purple: var(--accent-primary);
   --questify-purple-light: var(--accent-muted);
   --questify-error: var(--status-danger);
-  --gold-primary: var(--brass-primary);
-  --gold-hover: var(--brass-hover);
-  --gold-muted: var(--brass-muted);
-  --gold-glow: var(--brass-glow);
+  --gold-primary: var(--amber-primary);
+  --gold-hover: var(--amber-hover);
+  --gold-muted: var(--amber-muted);
+  --gold-glow: var(--amber-glow);
   --emerald-primary: var(--status-success);
-  --emerald-hover: #059669;
+  --emerald-hover: #2EA043;
   --emerald-muted: var(--status-success-muted);
-  --emerald-glow: rgba(16, 185, 129, 0.25);
-  --sage-primary: #8B5CF6;
-  --sage-hover: #7C3AED;
-  --sage-muted: rgba(139, 92, 246, 0.16);
-  --sage-glow: rgba(139, 92, 246, 0.25);
+  --emerald-glow: rgba(63, 185, 80, 0.22);
+  --sage-primary: var(--accent-primary);
+  --sage-hover: var(--accent-hover);
+  --sage-muted: var(--accent-muted);
+  --sage-glow: var(--accent-glow);
+  --rarity-common: #8B949E;
+  --rarity-heroic: var(--amber-primary);
+  --rarity-epic: #A371F7;
+  --rarity-legendary: var(--accent-primary);
 }
 
-/* Light Theme: "Manuscript Scribe Mode" */
+/* Light theme — Daylight Desk (calibrated paper, same ember signal) */
 [data-theme="light"] {
-  --bg-canvas: #F6F3EB;         /* Aged Manuscript Vellum */
-  --bg-surface: #FAF8F2;        /* Scribe Parchment */
-  --bg-elevated: #EDE8DC;       /* Indented Ledger Rail */
-  --bg-subtle: #E3DDD0;
-  --bg-overlay: rgba(246, 243, 235, 0.94);
-  --bg-glass: rgba(250, 248, 242, 0.88);
+  --bg-canvas: #F6F7F9;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F0F2F5;
+  --bg-subtle: #E7EAEE;
+  --bg-overlay: rgba(246, 247, 249, 0.94);
+  --bg-glass: rgba(255, 255, 255, 0.9);
 
-  --border-subtle: rgba(140, 105, 30, 0.18);
-  --border-strong: rgba(140, 105, 30, 0.32);
-  --border-brass: rgba(140, 105, 30, 0.65);
-  --border-brass-solid: #8C691E;
-  --border-focus: #BF4416;
+  --border-subtle: rgba(27, 31, 36, 0.12);
+  --border-strong: rgba(27, 31, 36, 0.22);
+  --border-accent: rgba(200, 60, 15, 0.45);
+  --border-accent-solid: #C83C0F;
+  --border-focus: #C83C0F;
 
-  --text-primary: #122119;      /* Deep Forest Gall Ink */
-  --text-secondary: #3D5447;    /* Muted Scribe Tone */
-  --text-muted: #647B6F;        /* Marginalia */
-  --text-inverse: #FAF8F2;
+  --text-primary: #14181D;
+  --text-secondary: #4A535E;
+  --text-muted: #6E7781;
+  --text-inverse: #FFFFFF;
 
-  --accent-primary: #BF4416;    /* Sealing Wax Red-Orange */
-  --accent-hover: #9E350E;
-  --accent-muted: rgba(191, 68, 22, 0.12);
-  --accent-glow: rgba(191, 68, 22, 0.2);
+  --accent-primary: #D1450F;
+  --accent-hover: #B23A0C;
+  --accent-muted: rgba(209, 69, 15, 0.1);
+  --accent-glow: rgba(209, 69, 15, 0.18);
   --accent-foreground: #FFFFFF;
 
-  --brass-primary: #8C691E;     /* Burnished Antique Brass */
-  --brass-hover: #735414;
-  --brass-muted: rgba(140, 105, 30, 0.12);
-  --brass-glow: rgba(140, 105, 30, 0.18);
+  --amber-primary: #B45309;
+  --amber-hover: #92400E;
+  --amber-muted: rgba(180, 83, 9, 0.1);
+  --amber-glow: rgba(180, 83, 9, 0.16);
 
-  --status-success: #059669;
-  --status-success-muted: rgba(5, 150, 105, 0.12);
-  --status-warning: #D97706;
-  --status-warning-muted: rgba(217, 119, 6, 0.12);
-  --status-danger: #DC2626;
-  --status-danger-muted: rgba(220, 38, 38, 0.12);
-  --status-info: #0284C7;
-  --status-info-muted: rgba(2, 132, 199, 0.12);
+  --status-success: #1A7F37;
+  --status-success-muted: rgba(26, 127, 55, 0.1);
+  --status-warning: #9A6700;
+  --status-warning-muted: rgba(154, 103, 0, 0.1);
+  --status-danger: #CF222E;
+  --status-danger-muted: rgba(207, 34, 46, 0.1);
+  --status-info: #0969DA;
+  --status-info-muted: rgba(9, 105, 218, 0.1);
 
-  --shadow-sm: 0 1px 2px rgba(18, 33, 25, 0.06);
-  --shadow-md: 0 4px 12px rgba(18, 33, 25, 0.08);
-  --shadow-lg: 0 12px 28px rgba(18, 33, 25, 0.12);
+  --border-brass: rgba(180, 83, 9, 0.4);
+
+  --shadow-sm: 0 1px 2px rgba(27, 31, 36, 0.06);
+  --shadow-md: 0 4px 12px rgba(27, 31, 36, 0.1);
+  --shadow-lg: 0 12px 28px rgba(27, 31, 36, 0.14);
 }
 
 /* ==========================================================================
-   2. GLOBAL RESET & BASE STYLES
+   2. GLOBAL RESET & BASE
    ========================================================================== */
 
 *, *::before, *::after {
@@ -186,37 +203,31 @@ html, body {
 }
 
 ::selection {
-  background: var(--brass-primary);
-  color: var(--text-inverse);
+  background: var(--accent-primary);
+  color: var(--accent-foreground);
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-canvas);
-}
-
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-canvas); }
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: var(--radius-xs);
 }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--brass-primary);
-}
-
-/* Tabular Numerals */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);
 }
 
+/* Focus visibility — accessible, never removed */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 /* ==========================================================================
-   3. ARCHIVAL CHRONICLER CARDS & SURFACES
+   3. SURFACES
    ========================================================================== */
 
 .card-tactile {
@@ -225,19 +236,17 @@ html, body {
   border-radius: var(--radius-md);
   position: relative;
   overflow: hidden;
-  transition: transform var(--duration-fast) var(--spring-snappy),
-              border-color var(--duration-fast) ease,
+  transition: border-color var(--duration-fast) ease,
               box-shadow var(--duration-fast) ease;
 }
 
 .card-tactile:hover {
   border-color: var(--border-strong);
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
-/* Card with Engraved Brass Top Line */
-.card-chronicler, .quest-card {
+/* Goal / quest dossier surface — ember signal rule on the left edge */
+.card-chronicler, .quest-card, .goal-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -245,33 +254,32 @@ html, body {
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   transition: border-color var(--duration-fast) ease,
-              box-shadow var(--duration-fast) ease,
-              transform var(--duration-fast) var(--spring-snappy);
+              box-shadow var(--duration-fast) ease;
 }
 
-.card-chronicler::before, .quest-card::before {
+.card-chronicler::before, .quest-card::before, .goal-card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--border-brass);
-  opacity: 0.85;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent-primary);
+  opacity: 0.65;
   transition: opacity var(--duration-fast) ease;
 }
 
-.card-chronicler:hover, .quest-card:hover {
-  border-color: var(--border-brass);
-  box-shadow: var(--shadow-md), var(--shadow-brass);
+.card-chronicler:hover, .quest-card:hover, .goal-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
 }
 
-.card-chronicler:hover::before, .quest-card:hover::before {
+.card-chronicler:hover::before, .quest-card:hover::before, .goal-card:hover::before {
   opacity: 1;
 }
 
 /* ==========================================================================
-   4. TACTILE BUTTONS (HOT EMBER & FORGED BRASS)
+   4. BUTTONS
    ========================================================================== */
 
 .btn-base {
@@ -281,85 +289,74 @@ html, body {
   gap: 0.5rem;
   padding: 0.55rem 1.15rem;
   border-radius: var(--radius-sm);
-  font-family: var(--font-body);
+  font-family: var(--font-display);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   cursor: pointer;
   outline: none;
   border: 1px solid transparent;
-  transition: transform 120ms var(--spring-bounce),
+  transition: transform 120ms var(--spring-snappy),
               background-color var(--duration-fast) ease,
               border-color var(--duration-fast) ease,
-              box-shadow var(--duration-fast) ease;
+              color var(--duration-fast) ease;
 }
 
-.btn-base:active {
-  transform: scale(0.97);
-}
+.btn-base:active { transform: scale(0.98); }
 
 .btn-base:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
   transform: none;
 }
 
-/* Hot Ember Primary Button */
+/* Solar Ember — the single primary action per view */
 .btn-primary, .btn-ember {
   background: var(--accent-primary);
-  color: #FFFFFF;
+  color: var(--accent-foreground);
   border-color: var(--accent-primary);
-  box-shadow: var(--shadow-sm), var(--shadow-ember);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover, .btn-ember:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
-  box-shadow: var(--shadow-md), 0 0 20px rgba(217, 83, 30, 0.4);
 }
 
-/* Forged Brass Secondary Button */
-.btn-brass {
-  background: var(--brass-muted);
-  color: var(--brass-primary);
-  border-color: var(--border-brass);
+/* Amber secondary */
+.btn-brass, .btn-amber {
+  background: var(--amber-muted);
+  color: var(--amber-primary);
+  border-color: rgba(245, 158, 11, 0.4);
 }
 
-.btn-brass:hover {
-  background: var(--brass-primary);
+.btn-brass:hover, .btn-amber:hover {
+  background: var(--amber-primary);
   color: var(--text-inverse);
-  box-shadow: var(--shadow-sm), var(--shadow-brass);
 }
 
-/* Secondary Neutral Button */
 .btn-secondary {
   background: var(--bg-elevated);
   color: var(--text-primary);
-  border-color: var(--border-subtle);
+  border-color: var(--border-strong);
 }
 
 .btn-secondary:hover {
   background: var(--bg-subtle);
-  border-color: var(--border-strong);
-  color: var(--text-primary);
+  border-color: var(--text-muted);
 }
 
-/* Triumphant Emerald Button */
 .btn-victory {
   background: var(--status-success);
   color: #FFFFFF;
   border-color: var(--status-success);
-  box-shadow: var(--shadow-sm), 0 0 14px rgba(16, 185, 129, 0.25);
 }
 
 .btn-victory:hover {
-  background: #059669;
-  border-color: #059669;
-  box-shadow: var(--shadow-md), 0 0 22px rgba(16, 185, 129, 0.4);
+  background: #2EA043;
+  border-color: #2EA043;
 }
 
-/* Ghost Button */
 .btn-ghost {
   background: transparent;
   color: var(--text-secondary);
@@ -372,7 +369,7 @@ html, body {
 }
 
 /* ==========================================================================
-   5. INPUTS & ARCHIVAL FORM CONTROLS
+   5. INPUTS
    ========================================================================== */
 
 .input-tactile, .input-field, .select-field {
@@ -396,9 +393,9 @@ html, body {
 }
 
 .input-tactile:focus, .input-field:focus, .select-field:focus {
-  border-color: var(--brass-primary);
+  border-color: var(--accent-primary);
   background: var(--bg-surface);
-  box-shadow: 0 0 0 1px var(--brass-primary), 0 0 12px var(--brass-glow);
+  box-shadow: 0 0 0 3px var(--accent-muted);
 }
 
 .input-tactile::placeholder, .input-field::placeholder {
@@ -409,9 +406,7 @@ html, body {
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C89D3C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239BA7B4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   padding-right: 2.25rem;
@@ -419,63 +414,66 @@ html, body {
   -webkit-appearance: none;
 }
 
+/* iOS zooms any input under 16px — force the floor on coarse pointers */
+@media (pointer: coarse) {
+  .input-tactile, .input-field, .select-field, textarea, input {
+    font-size: max(16px, 1rem);
+  }
+}
+
 /* ==========================================================================
-   6. CUSTOM TACTILE CHECKBOX (KINETIC STRIKE)
+   6. CHECKBOX — crisp resolve strike, no glow
    ========================================================================== */
 
 .checkbox-tactile {
   appearance: none;
   -webkit-appearance: none;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.125rem;
+  height: 1.125rem;
   border-radius: var(--radius-xs);
   border: 1.5px solid var(--border-strong);
   background: var(--bg-canvas);
   cursor: pointer;
   display: inline-grid;
   place-content: center;
-  transition: all 160ms var(--spring-bounce);
+  transition: background-color var(--duration-fast) ease,
+              border-color var(--duration-fast) ease;
   margin: 0;
   flex-shrink: 0;
   position: relative;
 }
 
-.checkbox-tactile:hover {
-  border-color: var(--brass-primary);
-  box-shadow: 0 0 8px var(--brass-glow);
-  transform: scale(1.08);
-}
+.checkbox-tactile:hover { border-color: var(--accent-primary); }
 
 .checkbox-tactile:checked {
   background: var(--status-success);
   border-color: var(--status-success);
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
-  transform: scale(1.05);
 }
 
 .checkbox-tactile:checked::before {
   content: "";
-  width: 0.55rem;
-  height: 0.32rem;
+  width: 0.5rem;
+  height: 0.28rem;
   border-left: 2px solid #FFFFFF;
   border-bottom: 2px solid #FFFFFF;
   transform: rotate(-45deg) translate(1px, -1px);
-  animation: checkmark-pop 200ms var(--spring-bounce) forwards;
+  animation: check-strike 140ms var(--spring-snappy) forwards;
 }
 
-@keyframes checkmark-pop {
-  0% { transform: rotate(-45deg) scale(0) translate(1px, -1px); }
-  100% { transform: rotate(-45deg) scale(1) translate(1px, -1px); }
+@keyframes check-strike {
+  0% { transform: rotate(-45deg) scale(0.4) translate(1px, -1px); opacity: 0; }
+  100% { transform: rotate(-45deg) scale(1) translate(1px, -1px); opacity: 1; }
 }
 
 /* ==========================================================================
-   7. THE CHRONICLE RAIL (Tactile Multi-Segment Progress)
+   7. MOMENTUM RAIL — the signature progress instrument
+   Multi-segment, weight-partitioned, crisp fill. No shimmer, no glow.
    ========================================================================== */
 
-.chronicle-rail, .progress-rail {
+.momentum-rail, .chronicle-rail, .progress-rail {
   height: 6px;
   background: var(--bg-canvas);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-full);
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -484,14 +482,12 @@ html, body {
   align-items: stretch;
 }
 
-.chronicle-rail-lg, .progress-rail-lg {
-  height: 10px;
-}
+.momentum-rail-lg, .chronicle-rail-lg, .progress-rail-lg { height: 10px; }
 
-.chronicle-rail-micro {
+.momentum-rail-micro, .chronicle-rail-micro {
   height: 4px;
   background: var(--bg-canvas);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-full);
   overflow: hidden;
   position: relative;
   border: 1px solid var(--border-subtle);
@@ -499,88 +495,47 @@ html, body {
   align-items: stretch;
 }
 
-/* Multi-Segment Chronicle Rail Subtasks */
-.chronicle-rail-segment {
+.momentum-segment, .chronicle-rail-segment {
   height: 100%;
   background: var(--bg-subtle);
   border-right: 1px solid var(--bg-canvas);
   position: relative;
-  transition: background-color var(--duration-normal) ease, width 300ms var(--spring-snappy);
+  transition: background-color var(--duration-normal) ease,
+              width 300ms var(--spring-snappy);
 }
 
-.chronicle-rail-segment:last-child {
+.momentum-segment:last-child, .chronicle-rail-segment:last-child {
   border-right: none;
 }
 
-.chronicle-rail-segment.completed {
-  background: linear-gradient(90deg, var(--accent-primary) 0%, var(--brass-primary) 100%);
-  box-shadow: 0 0 6px var(--accent-glow);
+.momentum-segment.completed, .chronicle-rail-segment.completed {
+  background: var(--accent-primary);
 }
 
-.chronicle-rail-segment.completed::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.28) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  animation: chronicle-shimmer 2.8s infinite;
-}
-
-.chronicle-fill, .progress-fill {
+.momentum-fill, .chronicle-fill, .progress-fill {
   height: 100%;
-  border-radius: var(--radius-xs);
-  background: linear-gradient(90deg, var(--accent-primary) 0%, var(--brass-primary) 100%);
+  border-radius: var(--radius-full);
+  background: var(--accent-primary);
   transition: width 400ms var(--spring-snappy);
   position: relative;
-  box-shadow: 0 0 8px var(--accent-glow);
 }
 
-.chronicle-fill-victory {
+.momentum-fill-victory, .chronicle-fill-victory {
   background: var(--status-success);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-}
-
-/* Progress rail shimmer */
-.chronicle-fill::after, .progress-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.22) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  animation: chronicle-shimmer 2.4s infinite;
-}
-
-@keyframes chronicle-shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
 }
 
 /* ==========================================================================
-   8. BRACKETED CHIPS & GUILD STAMPS (Zero Status Dots)
+   8. CHIPS, STAMPS & EFFORT TIERS
    ========================================================================== */
 
-.chronicle-stamp {
+.chip-label, .chronicle-stamp {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--brass-primary);
-  background: var(--brass-muted);
-  border: 1px solid var(--border-brass);
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-xs);
   display: inline-flex;
@@ -588,43 +543,43 @@ html, body {
   gap: 0.35rem;
 }
 
-/* Difficulty Tier Stamps */
-.stamp-easy {
+/* Effort tiers */
+.stamp-easy, .tier-light {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--status-success);
   background: var(--status-success-muted);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(63, 185, 80, 0.32);
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-xs);
   display: inline-flex;
   align-items: center;
 }
 
-.stamp-normal, .stamp-medium {
+.stamp-normal, .stamp-medium, .tier-standard {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--brass-primary);
-  background: var(--brass-muted);
-  border: 1px solid var(--border-brass);
+  color: var(--amber-primary);
+  background: var(--amber-muted);
+  border: 1px solid rgba(245, 158, 11, 0.34);
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-xs);
   display: inline-flex;
   align-items: center;
 }
 
-.stamp-hard {
+.stamp-hard, .tier-demanding {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--accent-primary);
   background: var(--accent-muted);
-  border: 1px solid rgba(217, 83, 30, 0.45);
+  border: 1px solid var(--border-accent);
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-xs);
   display: inline-flex;
@@ -640,73 +595,57 @@ html, body {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
-.badge-brass {
-  background: var(--brass-muted);
-  border: 1px solid var(--border-brass);
-  color: var(--brass-primary);
+.badge-brass, .badge-amber, .badge-indigo, .badge-gold {
+  background: var(--amber-muted);
+  border: 1px solid rgba(245, 158, 11, 0.34);
+  color: var(--amber-primary);
 }
 
 .badge-ember {
   background: var(--accent-muted);
-  border: 1px solid rgba(217, 83, 30, 0.3);
-  color: #F8714B;
+  border: 1px solid var(--border-accent);
+  color: #FF7A4D;
 }
 
 .badge-emerald {
   background: var(--status-success-muted);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34D399;
+  border: 1px solid rgba(63, 185, 80, 0.3);
+  color: #56D364;
 }
 
 .badge-danger {
   background: var(--status-danger-muted);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #F87171;
-}
-
-/* Backward compatibility classes mapped to semantic system */
-.badge-indigo {
-  background: var(--brass-muted);
-  border: 1px solid var(--border-brass);
-  color: var(--brass-primary);
-}
-
-.badge-gold {
-  background: var(--brass-muted);
-  border: 1px solid var(--border-brass);
-  color: var(--brass-primary);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  color: #FF7B72;
 }
 
 /* ==========================================================================
-   9. STRUCTURAL SKELETON LOADERS (5-State Coverage)
+   9. SKELETON LOADERS — quiet sweep, structural
    ========================================================================== */
 
-.chronicle-skeleton {
+.skeleton-block, .chronicle-skeleton {
   background: var(--bg-subtle);
   border-radius: var(--radius-xs);
-  border: 1px dashed var(--border-subtle);
+  border: 1px solid var(--border-subtle);
   position: relative;
   overflow: hidden;
 }
 
-.chronicle-skeleton::after {
+.skeleton-block::after, .chronicle-skeleton::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(200, 157, 60, 0.06) 50%,
+    rgba(240, 246, 252, 0.05) 50%,
     transparent 100%
   );
-  animation: skeleton-sweep 1.8s infinite;
+  animation: skeleton-sweep 1.6s linear infinite;
 }
 
 @keyframes skeleton-sweep {
@@ -714,7 +653,10 @@ html, body {
   100% { transform: translateX(100%); }
 }
 
-/* Ambient Tactical Canvas Overlay */
+/* ==========================================================================
+   10. AMBIENT SURFACES
+   ========================================================================== */
+
 .ambient-hero-glow {
   position: absolute;
   top: 0;
@@ -723,7 +665,12 @@ html, body {
   width: 100%;
   max-width: 1200px;
   height: 400px;
-  background: radial-gradient(circle at 50% 0%, rgba(200, 157, 60, 0.08) 0%, rgba(217, 83, 30, 0.04) 40%, transparent 75%);
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(249, 87, 33, 0.06) 0%,
+    rgba(245, 158, 11, 0.025) 45%,
+    transparent 75%
+  );
   pointer-events: none;
   z-index: 0;
 }
@@ -731,19 +678,36 @@ html, body {
 .bg-grid-mesh {
   background-size: 32px 32px;
   background-image:
-    linear-gradient(to right, rgba(200, 157, 60, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(200, 157, 60, 0.035) 1px, transparent 1px);
+    linear-gradient(to right, rgba(240, 246, 252, 0.028) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(240, 246, 252, 0.028) 1px, transparent 1px);
 }
 
-/* Tactical Viewport & Mobile Safe Areas */
-.safe-top {
-  padding-top: max(env(safe-area-inset-top), 0px);
+/* ==========================================================================
+   11. VIEWPORT & SAFE AREAS
+   ========================================================================== */
+
+.safe-top { padding-top: max(env(safe-area-inset-top), 0px); }
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 1.5rem); }
+
+.shadow-xs { box-shadow: 0 1px 2px rgba(1, 4, 9, 0.4); }
+
+/* Touch targets — 44px floor on coarse pointers */
+@media (pointer: coarse) {
+  button, a[role="button"], .btn-base {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
 }
 
-.safe-bottom {
-  padding-bottom: max(env(safe-area-inset-bottom), 1.5rem);
-}
+/* ==========================================================================
+   12. REDUCED MOTION
+   ========================================================================== */
 
-.shadow-xs {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

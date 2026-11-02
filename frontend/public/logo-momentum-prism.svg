@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="QuestSage">
+  <title>QuestSage — Momentum Prism</title>
+  <!-- Modern dark slate rounded container -->
+  <rect width="64" height="64" rx="14" fill="#0D1117" stroke="#21262D" stroke-width="2"/>
+  <!-- Stepped ascending momentum bars forming a stylized Q / Staircase -->
+  <!-- Bar 1 (Initiate) -->
+  <rect x="14" y="38" width="8" height="14" rx="2" fill="#4B5563"/>
+  <!-- Bar 2 (Momentum) -->
+  <rect x="26" y="28" width="8" height="24" rx="2" fill="#F59E0B"/>
+  <!-- Bar 3 (Victory Apex - Solar Ember) -->
+  <rect x="38" y="16" width="8" height="36" rx="2" fill="#F95721"/>
+  <!-- Diagonal Momentum Vector (The Breakthrough Arrow) -->
+  <path d="M14 48 L46 16 M46 16 H36 M46 16 V26" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

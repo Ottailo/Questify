@@ -1,5 +1,5 @@
 """
-Quest management API endpoints supporting subtask toggles, victory claims, and recent dossiers.
+Quest management API endpoints supporting subtask toggles, victory claims, and recent goals.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -91,7 +91,7 @@ async def get_recent_quests(
     current_user: Optional[User] = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get recent active campaign dossiers for the dashboard."""
+    """Get recent active goals for the dashboard."""
     target_user_id = user_id or (current_user.id if current_user else 1)
     
     quests = db.query(Quest).filter(
@@ -129,16 +129,16 @@ async def create_quest(
     current_user: Optional[User] = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ):
-    """Inscribe a new quest into the Guild Ledger."""
+    """Create a new goal for the current user."""
     target_user_id = quest_data.user_id or (current_user.id if current_user else 1)
-    
-    # Ensure user exists; if fallback user 1 doesn't exist, create a default chronicler
+
+    # Ensure user exists; if fallback user 1 doesn't exist, create a default user
     user = db.query(User).filter(User.id == target_user_id).first()
     if not user:
         user = User(
             id=target_user_id,
-            email=f"chronicler_{target_user_id}@guild.ledger",
-            username=f"Chronicler_{target_user_id}",
+            email=f"user_{target_user_id}@questsage.local",
+            username=f"QuestSageUser_{target_user_id}",
             hashed_password="default_hash",
             level=1,
             xp=0,
@@ -200,7 +200,7 @@ async def toggle_subtask(
     """Toggle completion status of a specific subtask and recalculate progress percentage."""
     quest = db.query(Quest).filter(Quest.id == quest_id).first()
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest dossier not found.")
+        raise HTTPException(status_code=404, detail="Goal not found.")
         
     subtasks = list(quest.subtasks or [])
     found = False
@@ -245,7 +245,7 @@ async def claim_quest_victory(
     """Claim quest completion victory, payout XP, and update level progression."""
     quest = db.query(Quest).filter(Quest.id == quest_id).first()
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest dossier not found.")
+        raise HTTPException(status_code=404, detail="Goal not found.")
         
     quest.status = QuestStatus.completed
     quest.progress_percentage = 100.0
@@ -289,10 +289,10 @@ async def update_quest(
     quest_update: QuestUpdate,
     db: Session = Depends(get_db)
 ):
-    """Update quest dossier details."""
+    """Update goal details."""
     quest = db.query(Quest).filter(Quest.id == quest_id).first()
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest dossier not found.")
+        raise HTTPException(status_code=404, detail="Goal not found.")
         
     if quest_update.title:
         quest.title = quest_update.title.strip()
@@ -317,11 +317,11 @@ async def delete_quest(
     quest_id: int,
     db: Session = Depends(get_db)
 ):
-    """Delete a quest dossier from the ledger."""
+    """Delete a goal."""
     quest = db.query(Quest).filter(Quest.id == quest_id).first()
     if not quest:
-        raise HTTPException(status_code=404, detail="Quest dossier not found.")
-        
+        raise HTTPException(status_code=404, detail="Goal not found.")
+
     db.delete(quest)
     db.commit()
-    return {"message": "Quest dossier erased from active ledger."}
+    return {"message": "Goal deleted successfully."}

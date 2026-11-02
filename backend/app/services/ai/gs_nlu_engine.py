@@ -1,5 +1,5 @@
 """
-Great Sage Natural Language Understanding (GS-NLU) Engine
+QuestSage Natural Language Understanding (GS-NLU) Engine
 The core AI engine that powers QuestSage's intelligent understanding.
 """
 
@@ -94,8 +94,8 @@ class ContextualUnderstanding:
 
 
 class GSNLUEngine:
-    """Great Sage Natural Language Understanding Engine."""
-    
+    """QuestSage Natural Language Understanding Engine."""
+
     def __init__(self):
         self.model_name = settings.EMBEDDING_MODEL
         self.device = "cuda" if torch and torch.cuda.is_available() else "cpu"
@@ -123,23 +123,23 @@ class GSNLUEngine:
     async def _initialize_models(self):
         """Initialize AI models asynchronously."""
         try:
-            logger.info("Initializing Great Sage NLU models...")
-            
+            logger.info("Initializing QuestSage NLU models...")
+
             if SentenceTransformer:
                 # Load sentence transformer for embeddings
                 self.sentence_model = SentenceTransformer(self.model_name)
                 logger.info("Sentence transformer loaded")
             else:
                 logger.warning("SentenceTransformer not available")
-            
+
             if AutoTokenizer:
                 # Load tokenizer and model for intent classification
                 self.tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
                 logger.info("Tokenizer loaded")
             else:
                 logger.warning("AutoTokenizer not available")
-            
-            logger.info("Great Sage NLU models initialized successfully")
+
+            logger.info("QuestSage NLU models initialized successfully")
             
         except Exception as e:
             logger.error(f"Error initializing GS-NLU models: {e}")

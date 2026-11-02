@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Compass, Mail, Lock, User, Eye, EyeOff, ShieldCheck, ArrowRight, BookOpen, Target, Sparkles, Brain, CheckCircle2 } from 'lucide-react';
+import { questsageAPI } from '../services/api';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -22,19 +23,24 @@ const Register: React.FC = () => {
     setValidationError(null);
 
     if (formData.password !== formData.confirmPassword) {
-      setValidationError('Archival cipher confirmation does not match.');
+      setValidationError('Passwords do not match.');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      localStorage.setItem('questsage_token', 'chronicler_verified_token');
+      await questsageAPI.registerUser({
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+      });
       navigate('/');
-    } catch (error) {
-      console.error('Registration error:', error);
-      setValidationError('Failed to inscribe docket into the Guild Ledger.');
+    } catch (error: any) {
+      const detail = error.response?.data?.error || error.response?.data?.detail || 'Registration failed. Please try again.';
+      setValidationError(typeof detail === 'string' ? detail : 'Registration failed. Check your details and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +61,7 @@ const Register: React.FC = () => {
       <div className="ambient-hero-glow" />
 
       <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
-        {/* Left Stage: Guild Vanguard Charter & Privileges */}
+        {/* Left: Features Overview */}
         <div className="lg:col-span-5 space-y-6 lg:pr-4">
           <div className="flex items-center gap-3">
             <div
@@ -69,9 +75,9 @@ const Register: React.FC = () => {
               <Compass className="w-5 h-5" />
             </div>
             <div>
-              <span className="chronicle-stamp">GUILD VANGUARD</span>
+              <span className="chip-label">QUESTSAGE</span>
               <div className="font-display font-bold text-sm tracking-wider uppercase" style={{ color: 'var(--text-primary)' }}>
-                ENLISTMENT PROTOCOL
+                CREATE ACCOUNT
               </div>
             </div>
           </div>
@@ -81,14 +87,14 @@ const Register: React.FC = () => {
               className="font-display font-bold text-3xl sm:text-4xl tracking-wide uppercase leading-tight"
               style={{ color: 'var(--text-primary)' }}
             >
-              INSCRIBE YOUR PERMANENT LEDGER
+              START YOUR JOURNEY
             </h1>
             <p className="text-sm font-body leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-              Join the Vanguard of high-discipline achievers. Gain access to the Great Sage cognitive co-pilot, the Chronicle Rail, and the DLP fatigue matrix.
+              Join thousands of focused achievers. Get AI-powered goal planning, visual progress tracking, and personalized focus calibration.
             </p>
           </div>
 
-          {/* Guild Privileges Matrix */}
+          {/* Features */}
           <div
             className="p-5 rounded-lg border space-y-3"
             style={{
@@ -99,15 +105,15 @@ const Register: React.FC = () => {
           >
             <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--brass-primary)' }}>
               <BookOpen className="w-3.5 h-3.5" />
-              <span>GUILD CHARTER PRIVILEGES</span>
+              <span>WHAT YOU GET</span>
             </div>
 
             <div className="space-y-2.5 pt-1">
               {[
-                { icon: Brain, title: "Great Sage NLU Co-Pilot", desc: "Deconstruct messy intentions into weighted milestones." },
-                { icon: Target, title: "DLP Fatigue Calibration", desc: "Dynamic load balancing based on mental energy reserves." },
-                { icon: Sparkles, title: "Tactile Chronicle Rail", desc: "Multi-weight progress visualization with zero filler." },
-                { icon: ShieldCheck, title: "Local Cryptographic Ledger", desc: "Zero telemetry leakage. Private, verified records." }
+                { icon: Brain, title: "AI Goal Assistant", desc: "Break complex goals into clear, weighted steps." },
+                { icon: Target, title: "Focus Calibration", desc: "Smart task sizing based on your energy level." },
+                { icon: Sparkles, title: "Progress Tracking", desc: "Visual progress bars that show real completion." },
+                { icon: ShieldCheck, title: "Private & Secure", desc: "Your data stays private. Encrypted and secure." }
               ].map((priv, idx) => {
                 const Icon = priv.icon;
                 return (
@@ -125,11 +131,11 @@ const Register: React.FC = () => {
 
           <div className="flex items-center gap-2 text-xs font-mono" style={{ color: 'var(--status-success)' }}>
             <CheckCircle2 className="w-4 h-4" />
-            <span>ARCHIVAL SLOTS AVAILABLE FOR ACTIVE ROTATION</span>
+            <span>SIGN UP IS FREE — START NOW</span>
           </div>
         </div>
 
-        {/* Right Stage: Registration Form Card */}
+        {/* Right: Registration Form */}
         <div className="lg:col-span-7">
           <div
             className="rounded-lg border p-6 sm:p-8 relative overflow-hidden"
@@ -146,17 +152,17 @@ const Register: React.FC = () => {
             />
 
             <div className="text-center space-y-1.5 mb-5">
-              <span className="chronicle-stamp">
-                GUILD ARCHIVE // ENLISTMENT
+              <span className="chip-label">
+                REGISTER
               </span>
               <h2
                 className="font-display font-bold text-2xl tracking-wide uppercase"
                 style={{ color: 'var(--text-primary)' }}
               >
-                INSCRIBE CHRONICLER
+                CREATE ACCOUNT
               </h2>
               <p className="text-xs font-body max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
-                Establish your permanent ledger docket and join the Guild Vanguard.
+                Set up your account and start building momentum.
               </p>
             </div>
 
@@ -197,7 +203,7 @@ const Register: React.FC = () => {
                       value={formData.firstName}
                       onChange={handleChange}
                       className="input-field w-full pl-9 font-body"
-                      placeholder="Vael"
+                      placeholder="Alex"
                     />
                   </div>
                 </div>
@@ -208,7 +214,7 @@ const Register: React.FC = () => {
                     className="block text-xs font-mono uppercase tracking-wider mb-1"
                     style={{ color: 'var(--text-secondary)' }}
                   >
-                    Surname / House
+                    Last Name
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style={{ color: 'var(--text-muted)' }}>
@@ -223,7 +229,7 @@ const Register: React.FC = () => {
                       value={formData.lastName}
                       onChange={handleChange}
                       className="input-field w-full pl-9 font-body"
-                      placeholder="Kaelen"
+                      placeholder="Smith"
                     />
                   </div>
                 </div>
@@ -235,7 +241,7 @@ const Register: React.FC = () => {
                   className="block text-xs font-mono uppercase tracking-wider mb-1"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  Chronicler Call-Sign (Username)
+                  Username
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style={{ color: 'var(--text-muted)' }}>
@@ -250,7 +256,7 @@ const Register: React.FC = () => {
                     value={formData.username}
                     onChange={handleChange}
                     className="input-field w-full pl-9 font-body"
-                    placeholder="arch_chronicler_9"
+                    placeholder="alex_smith"
                   />
                 </div>
               </div>
@@ -261,7 +267,7 @@ const Register: React.FC = () => {
                   className="block text-xs font-mono uppercase tracking-wider mb-1"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  Dispatch Channel (Email)
+                  Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style={{ color: 'var(--text-muted)' }}>
@@ -276,7 +282,7 @@ const Register: React.FC = () => {
                     value={formData.email}
                     onChange={handleChange}
                     className="input-field w-full pl-9 font-body"
-                    placeholder="chronicler@guild.archive"
+                    placeholder="you@example.com"
                   />
                 </div>
               </div>
@@ -288,7 +294,7 @@ const Register: React.FC = () => {
                     className="block text-xs font-mono uppercase tracking-wider mb-1"
                     style={{ color: 'var(--text-secondary)' }}
                   >
-                    Archival Cipher
+                    Password
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style={{ color: 'var(--text-muted)' }}>
@@ -303,7 +309,7 @@ const Register: React.FC = () => {
                       value={formData.password}
                       onChange={handleChange}
                       className="input-field w-full pl-9 pr-10 font-body"
-                      placeholder="Enter cipher"
+                      placeholder="Create a password"
                     />
                     <button
                       type="button"
@@ -322,7 +328,7 @@ const Register: React.FC = () => {
                     className="block text-xs font-mono uppercase tracking-wider mb-1"
                     style={{ color: 'var(--text-secondary)' }}
                   >
-                    Verify Cipher
+                    Confirm Password
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style={{ color: 'var(--text-muted)' }}>
@@ -337,7 +343,7 @@ const Register: React.FC = () => {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       className="input-field w-full pl-9 pr-10 font-body"
-                      placeholder="Confirm cipher"
+                      placeholder="Re-enter your password"
                     />
                     <button
                       type="button"
@@ -361,9 +367,9 @@ const Register: React.FC = () => {
                   style={{ accentColor: 'var(--accent-primary)' }}
                 />
                 <label htmlFor="terms" className="text-xs font-body" style={{ color: 'var(--text-secondary)' }}>
-                  I bind my docket to the{' '}
-                  <span className="font-mono text-[11px]" style={{ color: 'var(--brass-primary)' }}>Guild Codex of Discipline</span>{' '}
-                  and the telemetry terms of the Grand Archive.
+                  I agree to the{' '}
+                  <span className="font-mono text-[11px]" style={{ color: 'var(--brass-primary)' }}>Terms of Service</span>{' '}
+                  and Privacy Policy.
                 </label>
               </div>
 
@@ -376,12 +382,12 @@ const Register: React.FC = () => {
                   {isLoading ? (
                     <span className="flex items-center gap-2 font-mono text-xs">
                       <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
-                      INSCRIBING LEDGER ENTRY...
+                      CREATING ACCOUNT...
                     </span>
                   ) : (
                     <>
                       <ShieldCheck className="w-4 h-4" />
-                      <span className="font-display tracking-wider uppercase text-xs">Inscribe Docket</span>
+                      <span className="font-display tracking-wider uppercase text-xs">Create Account</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </>
                   )}
@@ -390,13 +396,13 @@ const Register: React.FC = () => {
 
               <div className="text-center pt-2.5 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
                 <span className="text-xs font-body" style={{ color: 'var(--text-muted)' }}>
-                  Already enlisted in the Guild?{' '}
+                  Already have an account?{' '}
                   <Link
                     to="/login"
                     className="font-mono text-xs font-bold hover:underline"
                     style={{ color: 'var(--brass-primary)' }}
                   >
-                    Present Cipher to Sign In
+                    Sign In
                   </Link>
                 </span>
               </div>

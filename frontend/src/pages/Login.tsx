@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Compass, Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight, Brain, Database } from 'lucide-react';
+import { Compass, Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight, Brain, Database, AlertCircle } from 'lucide-react';
+import { questsageAPI } from '../services/api';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -9,18 +10,23 @@ const Login: React.FC = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage(null);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 600));
-      localStorage.setItem('questsage_token', 'chronicler_verified_token');
+      await questsageAPI.loginUser({
+        email: formData.email,
+        password: formData.password
+      });
       navigate('/');
-    } catch (error) {
-      console.error('Authentication error:', error);
+    } catch (error: any) {
+      const detail = error.response?.data?.error || error.response?.data?.detail || 'Authentication failed. Please verify credentials.';
+      setErrorMessage(detail);
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +54,7 @@ const Login: React.FC = () => {
       <div className="ambient-hero-glow" />
 
       <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
-        {/* Left Stage: Expedition Briefing & Operational Dossier */}
+        {/* Left: Brand & Feature Overview */}
         <div className="lg:col-span-6 space-y-6 lg:pr-6">
           <div className="flex items-center gap-3">
             <div
@@ -62,7 +68,7 @@ const Login: React.FC = () => {
               <Compass className="w-5 h-5" />
             </div>
             <div>
-              <span className="chronicle-stamp">GUILD VANGUARD</span>
+              <span className="chip-label">QUESTSAGE</span>
               <div className="font-display font-bold text-sm tracking-wider uppercase" style={{ color: 'var(--text-primary)' }}>
                 QUESTSAGE OS
               </div>
@@ -74,10 +80,10 @@ const Login: React.FC = () => {
               className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl tracking-wide uppercase leading-tight"
               style={{ color: 'var(--text-primary)' }}
             >
-              THE CRYPTOGRAPHIC LEDGER OF AMBITION
+              TURN AMBITION INTO ACTION
             </h1>
             <p className="text-sm sm:text-base font-body leading-relaxed max-w-lg" style={{ color: 'var(--text-secondary)' }}>
-              Transform amorphous goals into discrete tactical campaigns. Powered by Great Sage AI and local OmniRoute multi-model intelligence.
+              Break down complex goals into clear, actionable steps. Powered by AI that understands how you work best.
             </p>
           </div>
 
@@ -92,7 +98,7 @@ const Login: React.FC = () => {
           >
             <div className="flex items-center justify-between text-xs font-mono">
               <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                ARCHIVAL TELEMETRY
+                SYSTEM STATUS
               </span>
               <span className="text-[10px] font-mono tracking-widest font-bold" style={{ color: 'var(--status-success)' }}>
                 [ONLINE]
@@ -139,11 +145,11 @@ const Login: React.FC = () => {
           </div>
 
           <blockquote className="font-serif italic text-xs leading-relaxed pl-3 border-l-2" style={{ borderColor: 'var(--brass-primary)', color: 'var(--text-muted)' }}>
-            "Directives without discipline dissolve into entropy. Inscribe your milestones."
+            "A goal without a plan is just a wish. Start building momentum."
           </blockquote>
         </div>
 
-        {/* Right Stage: Authentication Dossier Card */}
+        {/* Right: Sign In Form */}
         <div className="lg:col-span-6">
           <div
             className="rounded-lg border p-6 sm:p-8 relative overflow-hidden"
@@ -160,28 +166,43 @@ const Login: React.FC = () => {
             />
 
             <div className="text-center space-y-2 mb-6">
-              <span className="chronicle-stamp">
-                GUILD ARCHIVE // AUTHENTICATION
+              <span className="chip-label">
+                SIGN IN
               </span>
               <h2
                 className="font-display font-bold text-2xl tracking-wide uppercase"
                 style={{ color: 'var(--text-primary)' }}
               >
-                AUTHORIZE CHRONICLER
+                WELCOME BACK
               </h2>
               <p className="text-xs font-body" style={{ color: 'var(--text-secondary)' }}>
-                Present your credentials to access the Guild Ledger, active campaigns, and Great Sage telemetry.
+                Sign in to access your goals, progress, and AI assistant.
               </p>
             </div>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
+              {errorMessage && (
+                <div
+                  className="p-3 rounded border flex items-start gap-2 text-xs font-mono"
+                  role="alert"
+                  style={{
+                    backgroundColor: 'var(--status-danger-muted)',
+                    borderColor: 'var(--status-danger)',
+                    color: 'var(--status-danger)'
+                  }}
+                >
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-px" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
               <div>
                 <label
                   htmlFor="email"
                   className="block text-xs font-mono uppercase tracking-wider mb-1.5"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  Chronicler Dispatch (Email)
+                  Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style={{ color: 'var(--text-muted)' }}>
@@ -196,7 +217,7 @@ const Login: React.FC = () => {
                     value={formData.email}
                     onChange={handleChange}
                     className="input-field w-full pl-9 font-body"
-                    placeholder="chronicler@guild.archive"
+                    placeholder="you@example.com"
                   />
                 </div>
               </div>
@@ -208,7 +229,7 @@ const Login: React.FC = () => {
                     className="block text-xs font-mono uppercase tracking-wider"
                     style={{ color: 'var(--text-secondary)' }}
                   >
-                    Cipher Key (Password)
+                    Password
                   </label>
                   <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
                     Bcrypt 12-Round
@@ -227,7 +248,7 @@ const Login: React.FC = () => {
                     value={formData.password}
                     onChange={handleChange}
                     className="input-field w-full pl-9 pr-10 font-body"
-                    placeholder="Enter archival cipher"
+                    placeholder="Enter your password"
                   />
                   <button
                     type="button"
@@ -249,7 +270,7 @@ const Login: React.FC = () => {
                     className="rounded border"
                     style={{ accentColor: 'var(--accent-primary)' }}
                   />
-                  <span>Persist Archival Session</span>
+                  <span>Remember me</span>
                 </label>
               </div>
 
@@ -262,12 +283,12 @@ const Login: React.FC = () => {
                   {isLoading ? (
                     <span className="flex items-center gap-2 font-mono text-xs">
                       <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
-                      VERIFYING CIPHER...
+                      SIGNING IN...
                     </span>
                   ) : (
                     <>
                       <ShieldCheck className="w-4 h-4" />
-                      <span className="font-display tracking-wider uppercase text-xs">Access Ledger</span>
+                      <span className="font-display tracking-wider uppercase text-xs">Sign In</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </>
                   )}
@@ -276,19 +297,19 @@ const Login: React.FC = () => {
 
               <div className="text-center pt-3 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
                 <span className="text-xs font-body" style={{ color: 'var(--text-muted)' }}>
-                  Unregistered Chronicler?{' '}
+                  Don't have an account?{' '}
                   <Link
                     to="/register"
                     className="font-mono text-xs font-bold hover:underline"
                     style={{ color: 'var(--brass-primary)' }}
                   >
-                    Inscribe New Docket
+                    Create Account
                   </Link>
                 </span>
               </div>
             </form>
 
-            {/* Tactical Demo Docket Footer */}
+            {/* Demo Credentials */}
             <div
               className="mt-5 p-3 rounded border text-xs font-mono space-y-1"
               style={{
@@ -308,7 +329,7 @@ const Login: React.FC = () => {
                 </button>
               </div>
               <div className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                EMAIL: <span className="font-mono" style={{ color: 'var(--text-primary)' }}>demo@questsage.com</span> | CIPHER: <span className="font-mono" style={{ color: 'var(--text-primary)' }}>demo123</span>
+                EMAIL: <span className="font-mono" style={{ color: 'var(--text-primary)' }}>demo@questsage.com</span> | PASSWORD: <span className="font-mono" style={{ color: 'var(--text-primary)' }}>demo123</span>
               </div>
             </div>
           </div>
