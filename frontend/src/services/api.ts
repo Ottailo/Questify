@@ -1,5 +1,5 @@
 /**
- * API service for communicating with QuestSage Great Sage AI backend
+ * API service for communicating with the QuestSage Momentum Engine backend
  */
 
 import axios from 'axios';
@@ -401,6 +401,43 @@ export const questsageAPI = {
   async getRecentQuests(): Promise<Quest[]> {
     const response = await api.get('/api/v1/quests/recent');
     return response.data as Quest[];
+  },
+
+  // Digital Lifestyle Profile (workload calibration)
+  async getDLP(userId: number = 1): Promise<{
+    core_traits: Record<string, any>;
+    interests: Record<string, any>;
+    communication_style: string;
+    learning_style: Record<string, any>;
+    motivation_triggers: string[];
+    energy_patterns: Record<string, any>;
+    difficulty_preference: string;
+    last_updated: string | null;
+  }> {
+    const response = await api.get(`/api/v1/users/${userId}/dlp`);
+    return response.data as {
+      core_traits: Record<string, any>;
+      interests: Record<string, any>;
+      communication_style: string;
+      learning_style: Record<string, any>;
+      motivation_triggers: string[];
+      energy_patterns: Record<string, any>;
+      difficulty_preference: string;
+      last_updated: string | null;
+    };
+  },
+
+  async updateDLP(userId: number, updates: {
+    core_traits?: Record<string, any>;
+    interests?: Record<string, any>;
+    communication_style?: string;
+    learning_style?: Record<string, any>;
+    motivation_triggers?: string[];
+    energy_patterns?: Record<string, any>;
+    difficulty_preference?: string;
+  }): Promise<{ message: string; last_updated: string }> {
+    const response = await api.put(`/api/v1/users/${userId}/dlp`, updates);
+    return response.data as { message: string; last_updated: string };
   },
 
   // All Quests

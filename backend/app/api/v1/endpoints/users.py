@@ -40,8 +40,8 @@ async def get_current_user_profile(
     if not user:
         user = User(
             id=1,
-            email="chronicler@guild.archive",
-            username="GuildChronicler",
+            email="user@questsage.app",
+            username="QuestSageUser",
             hashed_password="default_hash",
             level=5,
             xp=1250,
@@ -69,9 +69,9 @@ async def get_current_user_profile(
         "id": user.id,
         "email": user.email,
         "username": user.username,
-        "first_name": user.first_name or "Vanguard",
-        "last_name": user.last_name or "Chronicler",
-        "title": "Vanguard Scout & Guild Chronicler",
+        "first_name": user.first_name or "",
+        "last_name": user.last_name or "",
+        "title": user.username or "QuestSage User",
         "level": user.level,
         "xp": user.xp,
         "next_level_xp": user.level * 500,
@@ -105,8 +105,8 @@ async def get_user_achievements(
     achievements = [
         {
             "id": 1,
-            "name": "First Inscription",
-            "description": "Successfully forged and completed your inaugural quest dossier.",
+            "name": "First Step",
+            "description": "Completed your first goal.",
             "achieved": total_completed >= 1,
             "achieved_at": user.created_at.isoformat() if total_completed >= 1 and user and user.created_at else None,
             "icon": "Target",
@@ -114,8 +114,8 @@ async def get_user_achievements(
         },
         {
             "id": 2,
-            "name": "Vanguard Cadence",
-            "description": "Maintained a continuous 7-rotation discipline streak.",
+            "name": "Week Warrior",
+            "description": "Maintained a 7-day activity streak.",
             "achieved": streak >= 7,
             "achieved_at": datetime.now().isoformat() if streak >= 7 else None,
             "icon": "Flame",
@@ -123,8 +123,8 @@ async def get_user_achievements(
         },
         {
             "id": 3,
-            "name": "Scribe of Thousand Seals",
-            "description": "Accumulated 1,000+ verified XP points across all campaigns.",
+            "name": "XP Milestone",
+            "description": "Earned 1,000+ XP across all goals.",
             "achieved": xp >= 1000,
             "achieved_at": datetime.now().isoformat() if xp >= 1000 else None,
             "icon": "Sparkles",
@@ -132,8 +132,8 @@ async def get_user_achievements(
         },
         {
             "id": 4,
-            "name": "Grand Campaign Master",
-            "description": "Successfully resolved 10+ complex quest dossiers.",
+            "name": "Goal Crusher",
+            "description": "Completed 10 or more goals.",
             "achieved": total_completed >= 10,
             "achieved_at": datetime.now().isoformat() if total_completed >= 10 else None,
             "icon": "Trophy",
@@ -158,7 +158,7 @@ async def get_user_activity(
 
     activity = []
     for q in recent_quests:
-        action = "Resolved campaign" if q.status == QuestStatus.completed else "Inscribed directive"
+        action = "Completed goal" if q.status == QuestStatus.completed else "Created goal"
         activity.append({
             "id": q.id,
             "action": action,

@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     """Application settings."""
     
     # Application
-    APP_NAME: str = "QuestSage - Great Sage AI"
+    APP_NAME: str = "QuestSage Momentum Engine"
     VERSION: str = "3.0.0"
     DEBUG: bool = True
     

@@ -1,5 +1,5 @@
 """
-OmniRoute AI Client for the Great Sage Cognitive Engine.
+OmniRoute AI Client for the QuestSage planning engine.
 Connects directly to the local multi-model gateway (port 20129) with structured JSON generation and graceful fallback.
 """
 
@@ -48,15 +48,15 @@ class OmniRouteClient:
 
     async def analyze_directive(self, message: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
-        Analyze a user's freeform directive using Great Sage reasoning.
+        Analyze a user's freeform directive using QuestSage reasoning.
         Extracts intent, emotional tone, fatigue/energy state, and tactical advice.
         """
         system_prompt = (
-            "You are the Great Sage, an ancient tactical guild chronicler and cognitive co-pilot in the QuestSage RPG operating system. "
-            "Analyze the chronicler's message with empathetic, grounded wisdom. "
+            "You are the QuestSage planning assistant, a grounded and practical productivity coach. "
+            "Analyze the user's message with empathetic, clear-headed judgment. "
             "Output strictly a JSON object with the following keys:\n"
             "{\n"
-            '  "message": "Direct, motivational, tactical response in the voice of the Great Sage (concise, under 3 sentences).",\n'
+            '  "message": "Direct, motivational, tactical response in the voice of a direct, encouraging coach (concise, under 3 sentences).",\n'
             '  "intent": "goal_creation" | "quest_generation" | "progress_analysis" | "fatigue_calibration" | "general_chat",\n'
             '  "confidence": float between 0.70 and 0.99,\n'
             '  "emotional_state": "focused" | "neutral" | "overwhelmed" | "fatigued" | "motivated",\n'
@@ -99,9 +99,9 @@ class OmniRouteClient:
         except Exception as e:
             logger.error(f"OmniRoute analyze connection failed: {e}")
 
-        # Resilient Guild Scribe Fallback
+        # Resilient offline fallback
         return {
-            "message": f"Hail, Chronicler. The Great Sage has inscribed your objective: '{message[:80]}'. Proceed with disciplined cadence.",
+            "message": f"Got it — let's break down \"{message[:80]}\" into clear next steps.",
             "intent": "goal_creation",
             "confidence": 0.85,
             "emotional_state": "focused",
@@ -109,7 +109,7 @@ class OmniRouteClient:
             "suggestions": [
                 "Deconstruct this into 3 weighted milestones",
                 "Calibrate a 25-minute Pomodoro focus block",
-                "Inscribe directly into the Guild Ledger"
+                "Save this as a goal"
             ]
         }
 
@@ -121,11 +121,11 @@ class OmniRouteClient:
         energy_level: Optional[str] = "moderate"
     ) -> Dict[str, Any]:
         """
-        Synthesize a structured, balanced RPG quest complete with weighted subtasks.
+        Synthesize a structured, balanced goal plan with weighted subtasks.
         """
         system_prompt = (
-            "You are the Great Sage Quest Architect for QuestSage. "
-            "Decompose the user's aspiration into a realistic, highly actionable quest dossier. "
+            "You are the QuestSage goal architect. "
+            "Decompose the user's aspiration into a realistic, highly actionable goal plan. "
             "Break it down into 2 to 4 measurable, sequential subtasks with explicit weights summing to 100%. "
             "Difficulty must be one of: 'easy', 'normal', 'hard'. "
             "XP value should scale with duration and difficulty (typically 50-350 XP). "
@@ -146,7 +146,7 @@ class OmniRouteClient:
 
         user_prompt = (
             f"User Objective: {user_message}\n"
-            f"Chronicler Level: {user_level}\n"
+            f"User Level: {user_level}\n"
             f"Target Duration: {available_time or 30} minutes\n"
             f"Current Energy Level: {energy_level or 'moderate'}"
         )
@@ -187,17 +187,17 @@ class OmniRouteClient:
 
         # Resilient fallback quest template
         return {
-            "title": f"Campaign Directive: {user_message[:50].title()}",
-            "description": f"Structured campaign to achieve: {user_message}",
+            "title": f"Goal: {user_message[:50].title()}",
+            "description": f"A structured plan to achieve: {user_message}",
             "quest_type": "Side",
             "difficulty": "normal",
             "domain": "Productive",
             "xp_value": 150,
             "estimated_duration": available_time or 30,
             "subtasks": [
-                {"text": "Analyze campaign scope and identify initial action", "completed": False, "weight": 30},
-                {"text": "Execute core operational milestone without distraction", "completed": False, "weight": 40},
-                {"text": "Verify resolution, audit ledger, and celebrate progress", "completed": False, "weight": 30}
+                {"text": "Clarify the scope and identify the first concrete action", "completed": False, "weight": 30},
+                {"text": "Work through the main milestone without distraction", "completed": False, "weight": 40},
+                {"text": "Verify the result and mark progress", "completed": False, "weight": 30}
             ]
         }
 

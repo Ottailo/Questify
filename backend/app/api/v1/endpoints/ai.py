@@ -1,5 +1,5 @@
 """
-Great Sage AI API endpoints powered by OmniRoute local LLM gateway.
+QuestSage AI API endpoints powered by the OmniRoute local LLM gateway.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -61,7 +61,7 @@ async def analyze_message(
     current_user: Optional[User] = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ):
-    """Analyze a message with the Great Sage AI engine via OmniRoute."""
+    """Analyze a message with the QuestSage AI engine via OmniRoute."""
     try:
         user_id = request.user_id or (current_user.id if current_user else 1)
         
@@ -92,7 +92,7 @@ async def analyze_message(
         }
         
         return AIResponse(
-            message=analysis.get("message", "Directive chronicled."),
+            message=analysis.get("message", "Understood."),
             intent=analysis.get("intent", "goal_creation"),
             confidence=analysis.get("confidence", 0.85),
             entities=[],
@@ -103,12 +103,12 @@ async def analyze_message(
     except Exception as e:
         logger.error(f"Error in /ai/analyze: {e}")
         return AIResponse(
-            message=f"Hail, Chronicler. The Great Sage has received: '{request.message}'. Focus on steady execution.",
+            message=f"Got it — working on: '{request.message}'. Focus on steady execution.",
             intent="goal_creation",
             confidence=0.8,
             entities=[],
             contextual_understanding={"emotional_state": "focused", "energy_level": "moderate"},
-            suggestions=["Deconstruct milestone", "Sprint focus block", "Audit active roster"]
+            suggestions=["Break down your next milestone", "Start a focus session", "Review active goals"]
         )
 
 
@@ -118,7 +118,7 @@ async def generate_quest(
     current_user: Optional[User] = Depends(get_optional_current_user),
     db: Session = Depends(get_db)
 ):
-    """Generate a structured, personalized quest dossier using Great Sage AI."""
+    """Generate a structured, personalized goal plan using QuestSage AI."""
     try:
         user_level = current_user.level if current_user else 1
         
@@ -132,7 +132,7 @@ async def generate_quest(
         return QuestGenerationResponse(
             quest=blueprint,
             personalization_data={
-                "generated_by": "Great Sage via OmniRoute",
+                "generated_by": "QuestSage AI via OmniRoute",
                 "energy_calibration": request.energy_level or "moderate",
                 "target_minutes": request.available_time or 30
             },
@@ -140,9 +140,9 @@ async def generate_quest(
             adaptability_score=0.88,
             creativity_level=0.85,
             suggestions=[
-                "Inscribe directly into active ledger",
-                "Calibrate subtask weights",
-                "Initiate countdown sprint"
+                "Save to your active goals",
+                "Adjust subtask priorities",
+                "Start a timed session"
             ]
         )
     except Exception as e:
@@ -155,7 +155,7 @@ async def generate_quest(
 
 @router.get("/performance")
 async def get_ai_performance():
-    """Retrieve health and telemetry status of the Great Sage AI engine."""
+    """Retrieve health and status of the QuestSage AI engine."""
     return {
         "status": "operational",
         "gateway": "OmniRoute (Port 20129)",

@@ -1,5 +1,5 @@
 """
-Advanced Quest Generation System powered by Great Sage AI.
+Advanced Quest Generation System powered by QuestSage AI.
 """
 
 import random
