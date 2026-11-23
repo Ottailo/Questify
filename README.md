@@ -15,7 +15,7 @@ A broad goal such as “learn Python” is hard to start when it has no clear ne
 - Registration and login handlers hash passwords with bcrypt and issue JWTs (`backend/app/api/v1/endpoints/auth.py`, `backend/app/core/security.py`).
 - SQLite is the default database. The SQLAlchemy models also include PostgreSQL-compatible settings (`backend/app/core/config.py`, `backend/app/core/database.py`).
 
-These are code-level findings. The app and test suite were not run for this README draft.
+These are code-level findings. The frontend build and the backend test command were exercised on 2026-11-23; see Tests and checks for the exact result.
 
 ![Questify dashboard screenshot](tests/screenshots/03_dashboard_command_hud.png)
 
@@ -183,7 +183,7 @@ npm test -- --watchAll=false
 npm run build
 ```
 
-No tests or builds were run while preparing this draft. The frontend test is still the Create React App starter assertion for a “learn react” link, while the current `App.tsx` renders Questify routes. Treat that test as stale, not as evidence that the current UI passes. The backend integration test covers a health response, authentication, quest creation, subtask progress, and XP completion, but it does not test the AI flow. Run it only against a disposable database. `scripts/run_e2e_suite.mjs` starts services and captures browser screenshots, but it points to machine-specific Puppeteer and Edge paths and is not a portable CI command.
+Verified on 2026-11-23: `npm run build` passes. `python -m pytest -q tests/test_backend_api.py` has one passing health test and one failing lifecycle test on a fresh database because the test does not create tables (`no such table: users`). The frontend test is still the Create React App starter assertion for a “learn react” link, while the current `App.tsx` renders Questify routes. Treat that test as stale, not as evidence that the current UI passes. The backend integration test covers a health response, authentication, quest creation, subtask progress, and XP completion, but it does not test the AI flow. Run it only against a disposable initialized database. `scripts/run_e2e_suite.mjs` starts services and captures browser screenshots, but it points to machine-specific Puppeteer and Edge paths and is not a portable CI command.
 
 The repository has screenshots under `tests/screenshots/`. They document captured UI states; their presence does not prove that the current checkout passes an end-to-end run.
 
@@ -210,6 +210,7 @@ No Dockerfile or checked-in deployment configuration is present at the repositor
 - The profile has notification toggles that only change component state; they are not persisted to the API. Energy and sprint preferences use the DLP endpoint.
 - `backend/app/api/v1/endpoints/ai.py` calls OmniRoute directly. The separate `gs_nlu_engine.py` and `quest_generator.py` files exist, but their use by these current HTTP handlers is not established.
 - The README's earlier intent-recognition accuracy and broad test-coverage claims are not supported by the current test files. No metrics or live AI results are claimed here.
+- The backend lifecycle test fails on a fresh database because it does not create tables. The health test passes; the lifecycle test needs a disposable initialized database.
 - Questify has no license file in the inspected repository tree. License terms were not verified.
 
 ## Roadmap
