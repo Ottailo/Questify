@@ -1,391 +1,220 @@
-# QuestSage — AI Life Gamification Platform
+# Questify
 
-> "Life is a game. Play it." — An AI-powered personal operating system turning goals into structured RPG quests with adaptive XP and the Great Sage NLU engine.
+Questify is a goal tracker that turns a goal into a small set of weighted steps, then records progress and XP in a local database. The React app has a dashboard, goal list, planner chat, and profile; a FastAPI service provides the JSON API and can ask a configured OmniRoute gateway for a goal breakdown. The checked-in code supports the main create, edit, delete, subtask, and completion flows, but some authentication, AI, test, and profile claims need care. This README describes the repository as it exists, not every claim in its older documentation.
 
----
+## The problem it solves
 
-## 📊 Project Snapshot
+A broad goal such as “learn Python” is hard to start when it has no clear next action. Questify stores goals as quests, breaks their progress into weighted subtasks, and shows completed steps and XP in a single interface. The planner chat can request a structured quest suggestion, which the user can save to the quest list.
 
-| Attribute | Value |
-|---|---|
-| **Type** | Full-stack Web Application (AI Productivity & Gamification) |
-| **Maturity** | Active development (v3.0 Great Sage Engine) |
-| **Status** | 🟢 Active |
-| **Primary Language(s)** | Python 3.11+, TypeScript, TSX, CSS3 |
-| **Tech Stack** | FastAPI, Pydantic v2, SQLAlchemy 2.0, Alembic, React 18, TypeScript, Tailwind CSS, SQLite |
-| **Last Major Update** | 2026-11-02 (Auto-synced) |
-| **Estimated LOC** | ~29,216 LOC |
-| **Test Coverage** | 100% intent recognition test suite passing (`SUCCESS_SUMMARY.md`) |
+## What works in the checked-in code
 
----
+- The frontend routes to a dashboard, planner chat, quest list, profile, login, and registration pages (`frontend/src/App.tsx`).
+- The quest list can create, edit, delete, search, and filter quests. It can toggle weighted subtasks and request quest completion (`frontend/src/pages/QuestList.tsx`).
+- The dashboard can create a goal with three default steps and display recent quests and user statistics (`frontend/src/pages/Dashboard.tsx`).
+- The planner requests an analysis from `POST /api/v1/ai/analyze`, displays a returned quest blueprint, and can save it as a quest (`frontend/src/pages/QuestChat.tsx`). The backend calls OmniRoute for AI requests and has a template fallback in `backend/app/services/ai/omniroute_client.py`.
+- Registration and login handlers hash passwords with bcrypt and issue JWTs (`backend/app/api/v1/endpoints/auth.py`, `backend/app/core/security.py`).
+- SQLite is the default database. The SQLAlchemy models also include PostgreSQL-compatible settings (`backend/app/core/config.py`, `backend/app/core/database.py`).
 
-## 🎯 The Aim
+These are code-level findings. The app and test suite were not run for this README draft.
 
-### What This Project Is
-QuestSage transforms daily habit tracking, personal goal execution, and skill mastery into an immersive, dopamine-aligned Role-Playing Game (RPG). Unlike sterile to-do lists that induce cognitive fatigue and guilt, QuestSage acts as an intelligent companion powered by the **Great Sage Natural Language Understanding (GS-NLU) Engine**. 
+![Questify dashboard screenshot](tests/screenshots/03_dashboard_command_hud.png)
 
-Users interact via conversational natural language ("I want to learn Python in 30 days" or "I feel burned out and overwhelmed"). The Great Sage parses the intent, emotional energy, and user context, cross-references their **Digital Lifestyle Profile (DLP)**, and synthesizes balanced, actionable quests complete with time-budgeted subtasks (15 to 60 minutes), experience points (XP), skill domain tags (Learning, Creative, Productive, Social, Personal), and difficulty scaling.
+## Architecture
 
-### Why It Exists
-Most productivity apps fail because they treat human beings like deterministic machines. Checklists ignore emotional friction, fatigue, and lack of clarity. When a user writes a vague goal like "Get in shape", traditional apps leave it as an intimidating monolith, leading to procrastination.
+The frontend sends JSON requests to the FastAPI service. Quest records and user records use SQLAlchemy. The AI endpoints call OmniRoute through the backend client, with local fallback responses when that call fails.
 
-QuestSage decomposes monolithic aspirations into bite-sized quest chains with clear win conditions, instantaneous positive reinforcement (XP, level-ups, streaks), and empathetic guidance that scales down difficulty when energy is low.
-
-### What Success Looks Like
-A player starts their day, types a messy stream-of-consciousness thought into QuestSage, and watches Great Sage instantly transform it into an interactive quest card: `Quest: Python Fundamentals Mastery (60 min) — Subtasks: [1] Install runtime, [2] Write loop, [3] Run test | Reward: +25 XP`. Completing subtasks triggers audio-visual feedback, increments skill trees, and keeps motivation high.
-
-### What It Is NOT
-- It is **not** a generic corporate task tracker (Jira/Asana) with game skins slapped on top.
-- It is **not** an inflexible habit tracker that penalizes users harshly for taking rest days; the Great Sage adapts quests dynamically to emotional capacity.
-
----
-
-## 🏗️ Architecture Overview
-
-[![Interactive AI Knowledge Graph](https://img.shields.io/badge/Architecture-Interactive%20AI%20Knowledge%20Graph-02d2e3?style=for-the-badge&logo=diagram-next)](https://ottailo.vercel.app/projects/QuestSage)
-
-> 🧭 **Explore Interactively (Understand-Anything Paradigm)**:
-> - **Live Portfolio Dashboard**: Explore this system in the live [Interactive AI Knowledge Graph](https://ottailo.vercel.app/projects/QuestSage) with node telemetry, clickable layer inspectors, live search, and dependency tracers.
-> - **Offline HTML Viewer**: Open [`docs/architecture-graph.html`](./docs/architecture-graph.html) directly in any web browser with zero installation.
-> - **Understand Anything CLI**: Run `/understand-dashboard` or launch the standalone zero-dependency viewer:
->   ```bash
->   npx https://github.com/Egonex-AI/Understand-Anything/releases/latest/download/understand-anything-viewer.tgz .
->   ```
-
-### Exhaustive Multi-Plane System Architecture
-
-```mermaid
-graph TB
-    subgraph "Plane 1: Client Application (React 18 SPA)"
-        UserHUD["RPG Dashboard HUD<br/>(Level Bar, XP Counters, Streak Flame)"]
-        QuestLogView["Quest Log & Tree View<br/>(Daily, Side, Main, Epic Chains)"]
-        SageChat["Great Sage Chat Interface<br/>(Natural Language Goal Parser)"]
-        ProfileView["Character Profile & Skill Matrix<br/>(DLP Traits & Domain Breakdown)"]
-    end
-
-    subgraph "Plane 2: API Gateway & Versioned Routers (FastAPI :8000)"
-        APIRoot["FastAPI Core (backend/app/main.py)"]
-        AuthRouter["api/v1/endpoints/auth.py<br/>JWT Authentication, Login, Register"]
-        QuestRouter["api/v1/endpoints/quests.py<br/>Quest CRUD, Subtasks, XP Claiming"]
-        AIRouter["api/v1/endpoints/ai.py<br/>Great Sage NLU & Quest Generation"]
-        ProfileRouter["api/v1/endpoints/profile.py<br/>Digital Lifestyle Profile Sync"]
-
-        APIRoot --> AuthRouter
-        APIRoot --> QuestRouter
-        APIRoot --> AIRouter
-        APIRoot --> ProfileRouter
-    end
-
-    subgraph "Plane 3: Great Sage NLU & Intelligence Core"
-        IntentClassifier["GS-NLU Intent Classifier<br/>(goal_creation, quest_generation, progress_analysis)"]
-        EntityExtractor["Entity & Skill Extractor<br/>(Skill Domain, Action Verbs, Deadlines)"]
-        EmotionAnalyzer["Emotional Valence & Energy Gauge<br/>(High/Urgent, Steady, Fatigued/Burnout)"]
-        AdaptiveSynthesizer["Adaptive Quest Synthesizer<br/>(XP Budgeting & Subtask Decomposer)"]
-
-        AIRouter --> IntentClassifier
-        IntentClassifier --> EntityExtractor
-        EntityExtractor --> EmotionAnalyzer
-        EmotionAnalyzer --> AdaptiveSynthesizer
-    end
-
-    subgraph "Plane 4: Digital Lifestyle Profile (DLP) Engine"
-        DLPManager["DLP Manager Core"]
-        TraitVector["Trait Vector Evaluator<br/>(Productivity Rhythms, Completion Velocity)"]
-        FatigueProtector["Anti-Burnout Fatigue Protector<br/>(Downscales difficulty if 3 days stalled)"]
-
-        AdaptiveSynthesizer <--> DLPManager
-        DLPManager --> TraitVector
-        DLPManager --> FatigueProtector
-    end
-
-    subgraph "Plane 5: Relational Persistence Layer (SQLAlchemy 2.0)"
-        DB[(SQLite Store: backend/QuestSage.db)]
-        TableUsers["User Table (Level, Current_XP, Streak)"]
-        TableQuests["Quest Table (Difficulty, XP, Status, Deadline)"]
-        TableSubtasks["Subtask Table (Title, Minutes, Is_Completed)"]
-        TableDLP["LifestyleProfile Table (Traits, Energy Vector)"]
-        TableBadges["Achievement Table (Unlocked Milestones)"]
-
-        DB --- TableUsers
-        DB --- TableQuests
-        DB --- TableSubtasks
-        DB --- TableDLP
-        DB --- TableBadges
-    end
-
-    subgraph "Plane 6: Dead Ends & Fallbacks"
-        DE_Auth["⛔ DEAD END 1: Expired JWT<br/>401 Unauthorized -> Redirect to /login"]
-        DE_LowConf["⛔ DEAD END 2: Ambiguous Goal NLU<br/>Confidence < 0.50 -> Clarification prompt required"]
-        DE_ZeroSub["⛔ DEAD END 3: Zero Subtasks Defined<br/>Form submission blocked on custom quest creation"]
-        DE_PastDate["⛔ DEAD END 4: Invalid Past Deadline<br/>Validation error: Deadline must be in the future"]
-    end
-
-    UserHUD --> APIRoot
-    QuestLogView --> QuestRouter
-    SageChat --> AIRouter
-    ProfileView --> ProfileRouter
-
-    QuestRouter --> TableQuests
-    QuestRouter --> TableSubtasks
-    QuestRouter --> TableUsers
-    AuthRouter --> TableUsers
-    ProfileRouter --> TableDLP
-
-    AuthRouter -.->|Token invalid| DE_Auth
-    IntentClassifier -.->|Score < 0.50| DE_LowConf
-    QuestRouter -.->|0 subtasks| DE_ZeroSub
-    QuestRouter -.->|Past deadline| DE_PastDate
-```
-
-🔍 *[Open Full-Screen Zoomable Diagram (SVG)](./docs/diagrams/architecture.svg)*
-
-
-[Source: `docs/diagrams/architecture.graphify`]
-
----
-
-## 🧭 Exhaustive User Flow & Dead-End Map
-
-The following map details **every user path, input field, modal, button click, XP progression step, and dead end** across QuestSage.
-
-```mermaid
-graph TD
-    Start([👤 Player / User]) --> LandView["Visit QuestSage Frontend (localhost:3000)"]
-
-    subgraph "Screen 1: Authentication & Onboarding (/login & /register)"
-        LandView --> CheckToken{Valid JWT token in localStorage?}
-        CheckToken -->|No| LoginScreen["Render Login / Register View"]
-        LoginScreen --> FormAuth["Input: Email + Password"]
-        FormAuth --> BtnLogin["🔘 [BTN] Enter Quest World (POST /auth/login)"]
-        BtnLogin --> ValidateAuth{Credentials Valid?}
-        ValidateAuth -->|No| DE_AuthFail["⛔ DEAD END 1: Auth Failed<br/>Error alert: 'Invalid email or password'<br/>Stuck on /login"]
-        ValidateAuth -->|Yes| SetToken["Save Bearer token to localStorage<br/>Redirect to /dashboard"]
-    end
-
-    subgraph "Screen 2: RPG Dashboard HUD (/dashboard)"
-        SetToken --> RenderHUD["Render Dashboard HUD Component"]
-        RenderHUD --> HUDHeader["Header: Level Badge, XP Progress Bar, Streak Flame, Street Coins"]
-        RenderHUD --> BtnOpenSage["🔘 [BTN] Consult Great Sage AI"]
-        RenderHUD --> BtnNewQuest["🔘 [BTN] + Create Custom Quest"]
-        RenderHUD --> BtnViewQuests["🔘 [BTN] Open Full Quest Log"]
-        RenderHUD --> BtnViewProfile["🔘 [BTN] Character Sheet & DLP"]
-    end
-
-    subgraph "Screen 3: Great Sage Conversational NLU Modal"
-        BtnOpenSage --> SageModalView["Open Great Sage AI Drawer Modal"]
-        SageModalView --> InputSage["Input: Freeform Natural Language Goal<br/>e.g. 'I want to build a portfolio before Friday'"]
-        InputSage --> BtnAskSage["🔘 [BTN] Synthesize Quest<br/>POST /api/v1/ai/analyze"]
-        BtnAskSage --> NLUCheck{Intent Confidence >= 0.50?}
-        NLUCheck -->|Confidence < 0.50| DE_Vague["⛔ DEAD END 2: Ambiguous Goal<br/>Sage responds: 'What specific skill do you want to practice?'<br/>User must clarify prompt before quest can generate"]
-        NLUCheck -->|Confident| SynthesizeCard["Great Sage outputs Structured Quest Preview Card:<br/>Title, Domain, Difficulty, XP Reward, 3-4 Timed Subtasks"]
-        SynthesizeCard --> BtnAcceptQuest["🔘 [BTN] Accept Quest into Log<br/>POST /api/v1/quests/"]
-        SynthesizeCard --> BtnReroll["🔘 [BTN] Re-roll / Adjust Intensity"]
-        BtnAcceptQuest --> QuestSaved["Quest committed to DB -> Appears in Quest Log"]
-    end
-
-    subgraph "Screen 4: Manual Quest Builder Modal"
-        BtnNewQuest --> ManualModalView["Open Create Quest Dialog"]
-        ManualModalView --> ManualInputs["Inputs: Title, Description, Deadline Picker,<br/>Dropdown Difficulty (Daily, Side, Main, Epic),<br/>Subtask Checklist Builder"]
-        ManualModalView --> BtnAddSubtask["🔘 [BTN] + Add Subtask (Title + Minutes)"]
-        ManualModalView --> BtnSubmitManual["🔘 [BTN] Forge Quest"]
-        BtnSubmitManual --> CheckDeadline{Deadline > Current Timestamp?}
-        CheckDeadline -->|Deadline in past| DE_Past["⛔ DEAD END 4: Invalid Deadline<br/>Inline alert: 'Deadline must be in the future'"]
-        CheckDeadline -->|Deadline valid| CheckSubtaskCount{Subtasks count >= 1?}
-        CheckSubtaskCount -->|0 subtasks| DE_ZeroSub["⛔ DEAD END 3: Missing Subtasks<br/>Submit blocked: 'A quest must contain at least 1 subtask'"]
-        CheckSubtaskCount -->|>= 1 subtasks| ManualSaved["Quest committed to database"]
-    end
-
-    subgraph "Screen 5: Active Quest Execution & XP Claiming (/quests)"
-        BtnViewQuests --> RenderQuestLog["Render Active Quests Grouped by Domain"]
-        RenderQuestLog --> QuestCardComponent["Quest Card Item"]
-        QuestCardComponent --> SubtaskList["Subtask Checkboxes [15-60 min each]"]
-        SubtaskList --> CheckboxClick["User checks off subtask: [X] Done<br/>PATCH /api/v1/quests/{id}/subtasks/{subId}"]
-        CheckboxClick --> CheckAllDone{Are all subtasks checked?}
-        CheckAllDone -->|No: Partial progress| UpdateBar["Update quest progress percentage bar"]
-        CheckAllDone -->|Yes: All subtasks done| BtnClaimXP["🔘 [BTN] Claim Quest Victory & XP!"]
-        BtnClaimXP --> ClaimAction["POST /api/v1/quests/{id}/complete<br/>Update user XP, check level-up threshold"]
-        ClaimAction --> LevelCheck{XP >= Next Level Boundary?}
-        LevelCheck -->|Yes: Level Up| LevelUpAnimation["🎉 Level-Up Modal with Fanfare Sound Effect<br/>Level increments: Lvl N -> Lvl N+1<br/>Skill points awarded"]
-        LevelCheck -->|No| XPGainedToast["Show XP Gained Toast (+35 XP)"]
-    end
-
-    subgraph "Screen 6: DLP Anti-Burnout Recovery Loop"
-        RenderHUD --> InactivityCheck{User stalled > 3 days with 0 completions?}
-        InactivityCheck -->|Yes: Fatigue Detected| FatigueBanner["⚠️ Digital Lifestyle Profile Triggered:<br/>'Notice you've been tired lately. Scaling down difficulty.'"]
-        FatigueBanner --> BtnAcceptRest["🔘 [BTN] Accept Rest Day (Streak preserved)"]
-        FatigueBanner --> BtnMicroQuest["🔘 [BTN] Accept Restorative Micro-Quest (5 min, +10 XP)"]
-        InactivityCheck -->|No: Active player| NormalRhythm["Normal play mode maintained"]
-    end
-```
-
-🔍 *[Open Full-Screen Zoomable Diagram (SVG)](./docs/diagrams/user-flow.svg)*
-
-
----
-
-## 🗂️ File Structure
-
-### Complete Directory Organization
-
-```
-QuestSage/
-├── requirements.txt             # Python dependencies (FastAPI, SQLAlchemy, Pydantic)
-├── SUCCESS_SUMMARY.md           # Test results & Great Sage v3.0 sign-off
-├── README.md                    # This master documentation
-├── docs/
-│   └── diagrams/               # Visual architecture & graphify assets
-│       ├── architecture.graphify
-│       ├── architecture.png
-│       ├── file-tree.graphify
-│       ├── file-tree.png
-│       ├── dependencies.graphify
-│       ├── dependencies.png
-│       ├── data-flow.graphify
-│       ├── data-flow.png
-│       ├── user-flow.graphify
-│       ├── user-flow.png
-│       ├── connection-map.graphify
-│       └── connection-map.png
+```text
+Questify/
+├── README.md
+├── requirements.txt
 ├── backend/
-│   ├── .env                     # Secrets & environment variables
-│   ├── QuestSage.db              # SQLite persistence database
-│   ├── test_api.py              # End-to-end API test suite
-│   ├── test_direct.py           # Core logic direct unit tests
-│   ├── test_personalization.py  # Personalization & DLP test suite
-│   ├── alembic/                 # Migration environment
 │   ├── app/
-│   │   ├── main.py              # FastAPI production entry point
-│   │   ├── main_simple.py       # Standalone testing entry point
-│   │   ├── api/                 # Versioned API routers
-│   │   │   └── v1/
-│   │   │       ├── api.py       # Master v1 router aggregator
-│   │   │       └── endpoints/   # Domain endpoints
-│   │   │           ├── ai.py    # Great Sage NLU & Quest Generation
-│   │   │           ├── auth.py  # User authentication & tokens
-│   │   │           └── quests.py# Quest CRUD, subtasks & XP logging
-│   │   ├── core/                # Config, security, database sessions
-│   │   ├── models/              # SQLAlchemy database models
-│   │   └── schemas/             # Pydantic validation schemas
-│   └── tests/                   # Automated pytest suites
-└── frontend/
-    ├── package.json             # React 18, Tailwind, Lucide dependencies
-    ├── tsconfig.json            # TypeScript build configuration
-    ├── public/                  # Sound assets & icons
-    └── src/
-        ├── App.tsx              # Root React component
-        ├── components/          # Quest cards, HUD headers, XP bars
-        ├── pages/               # Dashboard, Profile, QuestLog
-        └── services/            # Axios API client
+│   │   ├── main.py
+│   │   ├── api/v1/
+│   │   │   ├── api.py
+│   │   │   └── endpoints/
+│   │   │       ├── ai.py
+│   │   │       ├── auth.py
+│   │   │       ├── quests.py
+│   │   │       └── users.py
+│   │   ├── core/
+│   │   │   ├── config.py
+│   │   │   ├── database.py
+│   │   │   ├── deps.py
+│   │   │   └── security.py
+│   │   ├── models/
+│   │   │   ├── achievement.py
+│   │   │   ├── quest.py
+│   │   │   └── user.py
+│   │   ├── schemas/
+│   │   ├── services/ai/
+│   │   │   ├── gs_nlu_engine.py
+│   │   │   ├── omniroute_client.py
+│   │   │   └── quest_generator.py
+│   │   └── tests/test_backend_api.py
+│   ├── test_api.py
+│   ├── test_direct.py
+│   ├── test_direct_personalization.py
+│   └── test_personalization.py
+├── docs/
+│   ├── architecture-graph.html
+│   └── diagrams/
+├── frontend/
+│   ├── package.json
+│   └── src/
+│       ├── App.tsx
+│       ├── components/
+│       ├── pages/
+│       ├── services/api.ts
+│       └── styles/questify-design-system.css
+├── scripts/
+│   ├── check_styles.mjs
+│   ├── dev.ps1
+│   └── run_e2e_suite.mjs
+└── tests/screenshots/
 ```
 
----
+The tree shows representative files, not every file in the repository. Quest subtasks are stored as JSON on the quest record; they are not a separate SQL table.
 
-## 🧩 The Logic & Data Pipeline
+## Tech stack
 
-### End-to-End Data Flow & NLU Synthesis
+| Area | Tools in the repository |
+|---|---|
+| API | Python, FastAPI, Uvicorn, Pydantic v2 |
+| Persistence | SQLAlchemy 2, SQLite by default, optional PostgreSQL configuration |
+| Authentication | bcrypt, JWT signing and validation code |
+| AI requests | `httpx` client for an OpenAI-style OmniRoute chat-completions endpoint |
+| Web app | React 19, TypeScript, Create React App (`react-scripts`), React Router 7 |
+| Client data | Axios and TanStack React Query |
+| UI | Tailwind CSS 3, Lucide React, `canvas-confetti`, project CSS variables |
+| Tests | pytest and React Testing Library/Jest through `react-scripts test` |
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant User as Player (React Frontend)
-    participant API as FastAPI Router (/api/v1/ai/analyze)
-    participant Sage as Great Sage NLU Engine
-    participant DLP as Digital Lifestyle Profile
-    participant DB as SQLite (QuestSage.db)
+Python dependencies are pinned in `requirements.txt`. Frontend dependencies and their lockfile are in `frontend/package.json` and `frontend/package-lock.json`.
 
-    User->>API: POST /api/v1/ai/analyze {text: "Learn Docker containerization in 2 weeks"}
-    API->>Sage: Parse Natural Language Input
-    Sage-->>Sage: Extract Intent: 'quest_generation' (Confidence: 0.94)
-    Sage-->>Sage: Extract Entities: [Skill: DevOps/Docker, Duration: 14 days]
-    Sage->>DLP: Query Player Learning History & Energy Rhythms
-    DLP-->>Sage: Return Profile: Steady Velocity, Evening Learner
-    Sage-->>Sage: Decompose into 4 Sequenced Micro-Tasks (30 min each)
-    Sage-->>Sage: Compute Difficulty: Side Quest (+35 XP)
-    Sage->>API: Return Structured Quest DTO
-    API-->>User: 200 OK {title: "Docker Containerization Mastery", xp: 35, subtasks: [...]}
-    User->>API: POST /api/v1/quests/ (Accept Quest)
-    API->>DB: Insert Quest & Subtask Records
-    DB-->>API: Confirm Commit
-    API-->>User: 201 Created -> Quest appears in HUD
-```
+## Quickstart
 
-🔍 *[Open Full-Screen Zoomable Diagram (SVG)](./docs/diagrams/data-flow.svg)*
+Use Python 3.11 or newer and Node.js/npm. These commands install the checked-in dependencies and start the API and web app separately.
 
+Terminal 1, from the repository root:
 
----
-
-## 🔌 Connection Map & Integration Interfaces
-
-### Exhaustive Connection & Integration Map
-
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        ReactApp["React 18 SPA (Port 3000)<br/>Axios API Client + Web Audio Engine"]
-    end
-
-    subgraph "FastAPI Application Server (Port 8000)"
-        FastAPICore["backend/app/main.py"]
-        AuthModule["app/api/v1/endpoints/auth.py"]
-        QuestModule["app/api/v1/endpoints/quests.py"]
-        AIModule["app/api/v1/endpoints/ai.py (Great Sage NLU)"]
-    end
-
-    subgraph "Data & Knowledge Persistence"
-        SQLiteDB[(backend/QuestSage.db<br/>SQLAlchemy ORM + Alembic)]
-    end
-
-    subgraph "Cross-Project Portfolio Reference"
-        PortfolioCaseStudy["projects/ottailo-portfolio<br/>(Showcased as Core AI Showcase)"]
-    end
-
-    ReactApp <-->|HTTP REST JSON| FastAPICore
-    FastAPICore --> AuthModule
-    FastAPICore --> QuestModule
-    FastAPICore --> AIModule
-    AuthModule --> SQLiteDB
-    QuestModule --> SQLiteDB
-    AIModule --> SQLiteDB
-    ReactApp -.->|Case Study Link| PortfolioCaseStudy
-```
-
-🔍 *[Open Full-Screen Zoomable Diagram (SVG)](./docs/diagrams/connection-map.svg)*
-
-
----
-
-## ⚙️ Setup & Usage
-
-### Backend Launch
 ```bash
-# 1. Navigate to backend
-cd QuestSage/backend
-
-# 2. Setup virtualenv
+cd backend
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-
-# 3. Install dependencies
+# Windows PowerShell:
+.venv\Scripts\Activate.ps1
+# macOS/Linux:
+# source .venv/bin/activate
 pip install -r ../requirements.txt
-
-# 4. Start FastAPI server
 uvicorn app.main:app --reload --port 8000
 ```
 
-### Frontend Launch
-```bash
-# 1. Navigate to frontend
-cd QuestSage/frontend
+Terminal 2, from the repository root:
 
-# 2. Install dependencies & run
-npm install
+```bash
+cd frontend
+npm ci
 npm start
-# Opens at http://localhost:3000
 ```
 
----
+The frontend runs at `http://localhost:3000`; the API runs at `http://127.0.0.1:8000`. The frontend package proxy points to port 8000. The API creates its tables when its lifespan starts. Set `QUESTSAGE_SECRET_KEY`, `OMNIROUTE_URL`, `OMNIROUTE_API_KEY`, and `OMNIROUTE_MODEL` in the API process environment. See `.env.example`. Do not commit a real `.env` file or paste a live key into source code.
 
-## 📝 Document Meta
-- **Generated:** 2026-09-13
-- **Last Verified Current:** 2026-11-02
-- **Verification Frequency:** Monthly or upon Great Sage algorithm iteration.
+## Usage
+
+Open the dashboard to add a goal, or go to the planner chat to ask for a breakdown. In the goal list, create or edit a quest, toggle its weighted steps, and use the completion action to request XP. Profile data and the planner depend on the API being available.
+
+The API can also be checked directly:
+
+```bash
+curl http://127.0.0.1:8000/health
+
+curl --request POST http://127.0.0.1:8000/api/v1/quests/ \
+  --header "Content-Type: application/json" \
+  --data '{"title":"Prepare a project outline","description":"Write and review the first outline.","quest_type":"side","difficulty":"normal","xp_value":150,"estimated_duration":30,"subtasks":[{"text":"List the sections","completed":false,"weight":40},{"text":"Draft the outline","completed":false,"weight":60}]}'
+```
+
+The second request creates a record in the configured database. Several quest and user endpoints accept requests without a bearer token, so do not expose this API as a multi-user service in its current configuration.
+
+## API surface
+
+All versioned endpoints are mounted under `/api/v1`. FastAPI's interactive documentation is at `/docs` while the service is running.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/health` | Basic health response |
+| `POST` | `/auth/register` | Register a user and return a token |
+| `POST` | `/auth/login` | Authenticate and return a token |
+| `GET` | `/auth/me` | Read the authenticated account profile |
+| `GET` | `/users/profile`, `/users/stats`, `/users/achievements`, `/users/activity` | Read profile and summary data |
+| `GET`, `PUT` | `/users/{user_id}/dlp` | Read or update the Digital Lifestyle Profile |
+| `GET` | `/quests/`, `/quests/recent` | List quests |
+| `POST` | `/quests/` | Create a quest |
+| `PUT`, `DELETE` | `/quests/{quest_id}` | Update or delete a quest |
+| `PATCH` | `/quests/{quest_id}/subtasks/{subtask_id}/toggle` | Toggle a subtask and recalculate weighted progress |
+| `POST` | `/quests/{quest_id}/complete` | Mark a quest complete and award XP |
+| `POST` | `/ai/analyze`, `/ai/generate-quest` | Analyze a message or request a quest blueprint |
+| `GET` | `/ai/performance` | Return AI service metadata |
+
+`/users/{user_id}/stats` is also available. The route definitions are in `backend/app/api/v1/endpoints/`. The `/ai/performance` handler references `settings` without importing it in `ai.py`, so that route is not verified and is expected to fail until corrected.
+
+## Data model
+
+The SQLAlchemy model files define:
+
+- `User` records with account fields, XP, level, streak, and JSON profile data (`backend/app/models/user.py`).
+- `DigitalLifestyleProfile` records with preference, energy, interest, and learning-style fields.
+- `Quest` records with type, difficulty, status, XP, duration, progress, timestamps, feedback, and JSON subtasks (`backend/app/models/quest.py`).
+- `QuestTemplate` and `QuestSequence` records for template and grouped-goal data.
+- Achievement, user-achievement, skill, wisdom-point, and user-level records (`backend/app/models/achievement.py`).
+
+At startup, `Base.metadata.create_all()` creates tables directly. There is no checked-in Alembic migration directory in this checkout. The `/users/achievements` endpoint currently calculates four achievement results from counts and XP; it does not load the achievement-definition tables.
+
+## Tests and checks
+
+The repository contains a backend integration test at `backend/tests/test_backend_api.py`, several direct or server-based scripts under `backend/`, and one frontend test at `frontend/src/App.test.tsx`.
+
+Commands declared or supported by the repository include:
+
+```bash
+cd backend
+python -m pytest -q tests/test_backend_api.py
+
+cd ../frontend
+npm test -- --watchAll=false
+npm run build
+```
+
+No tests or builds were run while preparing this draft. The frontend test is still the Create React App starter assertion for a “learn react” link, while the current `App.tsx` renders Questify routes. Treat that test as stale, not as evidence that the current UI passes. The backend integration test covers a health response, authentication, quest creation, subtask progress, and XP completion, but it does not test the AI flow. Run it only against a disposable database. `scripts/run_e2e_suite.mjs` starts services and captures browser screenshots, but it points to machine-specific Puppeteer and Edge paths and is not a portable CI command.
+
+The repository has screenshots under `tests/screenshots/`. They document captured UI states; their presence does not prove that the current checkout passes an end-to-end run.
+
+## Deployment
+
+No Dockerfile or checked-in deployment configuration is present at the repository root. `frontend/vercel.json` exists, but a deployment target and current hosted behavior were not verified for this draft. A deployment needs a configured API URL, an explicit CORS allowlist, a non-default JWT signing key, a persistent database, and an AI gateway configuration if AI generation is required. The API currently allows optional authentication and falls back to user ID `1` in several routes. Resolve that data-isolation behavior before serving multiple users.
+
+## Design decisions
+
+- A quest stores subtasks as JSON, so the current progress operation updates one quest record rather than maintaining a separate subtask table.
+- Subtask weights drive the progress percentage returned by the API.
+- SQLite is the out-of-box database; configuration can select a PostgreSQL URL.
+- The planner calls an OpenAI-style chat-completions API through the configured OmniRoute gateway. The client includes template fallbacks when the gateway is unavailable.
+- React Query manages server data; the app's visual system lives in its CSS and Tailwind files.
+
+## Limitations and unverified claims
+
+- The routes in `App.tsx` are described as protected in a comment, but the route tree does not add an authentication guard. The layout also does not redirect unauthenticated users.
+- Several frontend calls hard-code user ID `1`. Quest and profile routes also permit optional authentication or select a fallback account. The current wiring does not establish safe per-user isolation.
+- `frontend/src/pages/Login.tsx` preloads `demo@questsage.com`, while `backend/app/core/database.py` seeds `demo@questify.com`. The preloaded demo email does not match the seeded account.
+- The app now expects `QUESTSAGE_SECRET_KEY` and `OMNIROUTE_API_KEY` from the environment. If this repository was ever deployed with a committed default, rotate those values and remove them from any live environment.
+- `backend/app/core/security.py` imports `jwt`, but `requirements.txt` does not directly declare PyJWT. The app may rely on an incidental package in an existing environment.
+- The health response includes a fixed timestamp and reports the database as connected without checking database connectivity.
+- The profile has notification toggles that only change component state; they are not persisted to the API. Energy and sprint preferences use the DLP endpoint.
+- `backend/app/api/v1/endpoints/ai.py` calls OmniRoute directly. The separate `gs_nlu_engine.py` and `quest_generator.py` files exist, but their use by these current HTTP handlers is not established.
+- The README's earlier intent-recognition accuracy and broad test-coverage claims are not supported by the current test files. No metrics or live AI results are claimed here.
+- Questify has no license file in the inspected repository tree. License terms were not verified.
+
+## Roadmap
+
+1. Enforce authenticated ownership on every quest and profile operation, and remove fallback user IDs.
+2. Replace hard-coded secrets and declare all imported Python packages directly in `requirements.txt`.
+3. Repair the stale frontend test and add isolated backend tests for AI fallback behavior, DLP persistence, and ownership checks.
+4. Add versioned database migrations and document a reproducible deployment with explicit environment variables.

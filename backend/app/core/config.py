@@ -48,13 +48,10 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = "redis://localhost:6379"
     
-    # Security (64-byte secret key for HMAC SHA256)
+    # Security (set a 64-byte secret in the environment; never commit a real key)
     SECRET_KEY: str = os.getenv(
         "QUESTSAGE_SECRET_KEY",
-        os.getenv(
-            "QUESTIFY_SECRET_KEY",
-            ""
-        )
+        os.getenv("QUESTIFY_SECRET_KEY", "")
     )
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
@@ -71,7 +68,7 @@ class Settings(BaseSettings):
         "https://ottailo.vercel.app",
     ]
     
-    # OmniRoute LLM Settings
+    # OmniRoute LLM Settings (set the key in the environment; never commit a real key)
     OMNIROUTE_URL: str = os.getenv("OMNIROUTE_URL", "http://127.0.0.1:20129/v1")
     OMNIROUTE_API_KEY: str = os.getenv("OMNIROUTE_API_KEY", "")
     OMNIROUTE_MODEL: str = os.getenv("OMNIROUTE_MODEL", "infron/deepseek/deepseek-v4.1-flash")
