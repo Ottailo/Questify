@@ -9,7 +9,9 @@ Set-Location $scriptRoot
 # 1. Check OmniRoute Gateway
 Write-Host "`n[1/3] Checking OmniRoute Gateway (Port 20129)..." -ForegroundColor Cyan
 try {
-    $omni = Invoke-RestMethod -Uri "http://127.0.0.1:20129/v1/models" -Headers @{ Authorization = "Bearer $env:OMNIROUTE_API_KEY" } -TimeoutSec 2 -ErrorAction Stop
+    $omniHeaders = @{}
+    if ($env:OMNIROUTE_API_KEY) { $omniHeaders["Authorization"] = "Bearer $env:OMNIROUTE_API_KEY" }
+    $omni = Invoke-RestMethod -Uri "http://127.0.0.1:20129/v1/models" -Headers $omniHeaders -TimeoutSec 2 -ErrorAction Stop
     Write-Host "  -> OmniRoute is ONLINE (Multi-Model Gateway active)" -ForegroundColor Green
 } catch {
     Write-Host "  -> Warning: OmniRoute not responding on port 20129. AI engine will utilize resilient local fallback." -ForegroundColor Yellow
